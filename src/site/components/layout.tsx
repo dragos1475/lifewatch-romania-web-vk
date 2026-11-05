@@ -16,13 +16,13 @@ import { SiteSearch } from "./site-search";
 import { ThemeButton, ThemeChoice } from "./theme-switch";
 import { useSearchShortcut, useShortcutLabel } from "./use-mod-key";
 
-function Wordmark({ size = "md" }: { size?: "md" | "lg" }) {
+function Wordmark({ size = "md", inverse = false }: { size?: "md" | "lg"; inverse?: boolean }) {
   return (
-    <Link to="" className="flex shrink-0 items-center gap-3 rounded-lg py-1" aria-label="LifeWatch România, Universitatea din București, pagina principală">
+    <Link to="" className={cn("flex shrink-0 items-center gap-3 rounded-lg py-1", inverse ? "text-panel-foreground" : "text-foreground")} aria-label="LifeWatch România, Universitatea din București, pagina principală">
       <LogoMark className={size === "lg" ? "size-12" : "size-10"} />
       <span className="grid gap-0.5 leading-tight">
         <span className={cn("font-semibold tracking-tight", size === "lg" ? "text-[22px]" : "text-[18px]")}>LifeWatch România</span>
-        <span className={cn("font-medium text-muted", size === "lg" ? "text-[15px]" : "text-[13px]")}>Universitatea din București</span>
+        <span className={cn("font-medium", inverse ? "text-panel-foreground/65" : "text-muted", size === "lg" ? "text-[15px]" : "text-[13px]")}>Universitatea din București</span>
       </span>
     </Link>
   );
@@ -80,32 +80,32 @@ function Header({ onSearch }: { onSearch: () => void }) {
   }, []);
 
   return (
-    <header className={cn("sticky top-0 z-[1000] border-b transition-[background-color,border-color] duration-200", scrolled ? "border-border bg-background/80 backdrop-blur-md" : "border-transparent bg-background")}>
-      <div aria-hidden className="flex h-[3px]">
+    <header className={cn("sticky top-0 z-[1000] border-b transition-[background-color,border-color,box-shadow] duration-200", scrolled ? "border-border bg-background/90 shadow-card backdrop-blur-xl" : "border-border/70 bg-background/90 backdrop-blur-xl")}>
+      <div aria-hidden className="flex h-0.5">
         <span className="flex-[5] bg-brand-navy" />
         <span className="flex-[2] bg-brand-orange" />
         <span className="flex-[3] bg-brand-green" />
         <span className="flex-[2] bg-brand-teal" />
         <span className="flex-1 bg-brand-sand" />
       </div>
-      <Container className="flex h-[76px] items-center gap-4">
+      <Container className="flex h-[76px] items-center gap-4 sm:h-[82px]">
         <Wordmark />
         <nav aria-label="Navigare principală" className="ml-4 hidden items-center gap-0.5 xl:flex">
           {NAV.map((n) => {
             const active = current === n.key;
             return (
-              <Link key={n.key} to={n.key} aria-current={active ? "page" : undefined} className="relative rounded-lg px-3 py-1.5 text-[13px] text-muted transition-colors hover:text-foreground aria-[current=page]:text-foreground">
-                {active ? <motion.span layoutId="site-nav" transition={SPRING} className="absolute inset-0 rounded-lg bg-surface shadow-card ring-1 ring-border" /> : null}
+              <Link key={n.key} to={n.key} aria-current={active ? "page" : undefined} className="relative rounded-full px-3.5 py-2 text-[12px] font-medium text-muted transition-colors hover:text-foreground aria-[current=page]:text-accent">
+                {active ? <motion.span layoutId="site-nav" transition={SPRING} className="absolute inset-0 rounded-full bg-accent-soft" /> : null}
                 <span className="relative">{n.label}</span>
               </Link>
             );
           })}
         </nav>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-2.5">
           <button
             type="button"
             onClick={onSearch}
-            className="hidden h-8 w-[200px] items-center gap-2 rounded-lg border border-border bg-surface px-2.5 text-[13px] text-subtle shadow-card transition-colors hover:border-border-strong hover:text-muted md:flex"
+            className="hidden h-9 w-[200px] items-center gap-2 rounded-full border border-border bg-surface px-3 text-[13px] text-subtle shadow-card transition-colors hover:border-border-strong hover:text-muted md:flex"
           >
             <Search className="size-3.5" strokeWidth={1.75} />
             <span className="flex-1 text-left">Caută</span>
@@ -172,36 +172,36 @@ const FOOTER_COLUMNS: { title: string; links: { label: string; to?: string; hash
 
 function Footer() {
   return (
-    <footer className="mt-14 border-t border-border bg-surface/50">
-      <Container className="grid gap-8 py-8 lg:grid-cols-12">
-        <div className="grid content-start gap-3 lg:col-span-4">
-          <Wordmark size="lg" />
-          <p className="max-w-[40ch] text-[14px] leading-relaxed text-muted">
+    <footer className="mt-20 bg-panel text-panel-foreground">
+      <Container className="grid gap-10 py-12 sm:py-14 lg:grid-cols-12 lg:gap-14">
+        <div className="grid content-start gap-4 lg:col-span-4">
+          <Wordmark size="lg" inverse />
+          <p className="max-w-[40ch] text-[14px] leading-[1.75] text-panel-foreground/70">
             Infrastructură națională de cercetare pentru biodiversitate și ecosisteme a {ORG.hostGenitive}.
           </p>
-          <ul className="flex flex-wrap gap-x-4 gap-y-1.5 text-[12px] text-subtle">
+          <ul className="flex flex-wrap gap-x-4 gap-y-2 text-[12px] text-panel-foreground/55">
             {INFRASTRUCTURES.map((i) => (
               <li key={i.id}>
-                <a href={i.url} target="_blank" rel="noreferrer" className="hover:text-foreground">
+                <a href={i.url} target="_blank" rel="noreferrer" className="transition-colors hover:text-panel-foreground">
                   {i.name}
                 </a>
               </li>
             ))}
           </ul>
         </div>
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-4 lg:col-span-8">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4 lg:col-span-8">
           {FOOTER_COLUMNS.map((col) => (
             <div key={col.title} className="grid content-start gap-3">
-              <p className="text-[12px] font-medium text-subtle">{col.title}</p>
-              <ul className="grid gap-1.5">
+              <p className="text-[10px] font-semibold tracking-[0.14em] text-panel-foreground/45 uppercase">{col.title}</p>
+              <ul className="grid gap-2">
                 {col.links.map((l) => (
                   <li key={l.label}>
                     {l.to !== undefined ? (
-                      <Link to={l.to} hash={l.hash} className="text-[14px] text-muted transition-colors hover:text-foreground">
+                      <Link to={l.to} hash={l.hash} className="text-[13px] text-panel-foreground/70 transition-colors hover:text-panel-foreground">
                         {l.label}
                       </Link>
                     ) : (
-                      <a href={l.href} className="text-[14px] text-muted transition-colors hover:text-foreground">
+                      <a href={l.href} className="text-[13px] text-panel-foreground/70 transition-colors hover:text-panel-foreground">
                         {l.label}
                       </a>
                     )}
@@ -212,8 +212,8 @@ function Footer() {
           ))}
         </div>
       </Container>
-      <div className="border-t border-border">
-        <Container className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-3 text-[12px] text-subtle">
+      <div className="border-t border-border bg-background text-foreground">
+        <Container className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-4 text-[11px] text-subtle">
           <p>{ORG.name} · {ORG.host}</p>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
             <p>Fotografii de pe Unsplash, folosite conform licenței Unsplash.</p>
