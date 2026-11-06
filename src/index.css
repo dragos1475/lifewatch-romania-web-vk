@@ -138,36 +138,24 @@
   color-scheme: dark;
 }
 
-/* Seasons on the home page tree: one 80 s cycle, spring, summer, autumn, winter. Each season holds
-   for about 11 s and fades into the next over about 9 s. Every leaf cluster sets its own colours
+/* Seasons on the home page tree: one 64 s cycle, spring, summer, autumn, winter. Each season holds
+   for about 10 s and fades into the next over about 6 s. Every leaf cluster sets its own colours
    (--leaf-*), base opacity (--leaf-o) and phase (--leaf-shift) inline. */
 @keyframes season-canopy {
-  0%, 14% { fill: var(--leaf-spring); fill-opacity: var(--leaf-o); }
-  25%, 39% { fill: var(--leaf-summer); fill-opacity: calc(var(--leaf-o) * 1.15); }
-  50%, 64% { fill: var(--leaf-autumn); fill-opacity: var(--leaf-o); }
-  75%, 89% { fill: var(--leaf-winter); fill-opacity: calc(var(--leaf-o) * 0.55); }
+  0%, 15% { fill: var(--leaf-spring); fill-opacity: var(--leaf-o); }
+  25%, 40% { fill: var(--leaf-summer); fill-opacity: calc(var(--leaf-o) * 1.15); }
+  50%, 65% { fill: var(--leaf-autumn); fill-opacity: var(--leaf-o); }
+  75%, 90% { fill: var(--leaf-winter); fill-opacity: calc(var(--leaf-o) * 0.55); }
   100% { fill: var(--leaf-spring); fill-opacity: var(--leaf-o); }
-}
-@keyframes season-label {
-  0%, 17% { opacity: 1; transform: none; }
-  22%, 92% { opacity: 0; transform: translateY(3px); }
-  97%, 100% { opacity: 1; transform: none; }
 }
 .season-leaf {
   fill: var(--leaf-summer);
   fill-opacity: calc(var(--leaf-o) * 1.15);
-  animation: season-canopy 80s ease-in-out infinite;
+  animation: season-canopy 64s ease-in-out infinite;
   animation-delay: var(--leaf-shift, 0s);
 }
-.season-label {
-  opacity: 0;
-  animation: season-label 80s ease-in-out infinite;
-  animation-delay: var(--label-shift, 0s);
-}
 @media (prefers-reduced-motion: reduce) {
-  .season-leaf,
-  .season-label { animation: none; }
-  .season-label[data-season="summer"] { opacity: 1; }
+  .season-leaf { animation: none; }
 }
 
 @keyframes pop-in {

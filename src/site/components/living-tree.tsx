@@ -1,5 +1,5 @@
 // Animated tree for the home page hero (ported from v0). Purely decorative, so it is hidden from
-// screen readers. The canopy runs through the four seasons in one slow CSS cycle (.season-* in
+// screen readers. The canopy runs through the four seasons in one slow CSS cycle (.season-leaf in
 // src/index.css), which also works before hydration; with reduced motion it stays in summer.
 import type { CSSProperties } from "react";
 import { motion, useReducedMotion } from "motion/react";
@@ -39,7 +39,7 @@ const canopy = [
 
 // Outer clusters change colour first, the centre of the crown last.
 const leafStyle = (c: (typeof canopy)[number]) => {
-  const shift = (Math.hypot(c.cx - 280, c.cy - 174) / 100) * 5;
+  const shift = (Math.hypot(c.cx - 280, c.cy - 174) / 100) * 4;
   return {
     "--leaf-spring": `var(--season-spring-${c.tone})`,
     "--leaf-summer": `var(--season-summer-${c.tone})`,
@@ -50,14 +50,6 @@ const leafStyle = (c: (typeof canopy)[number]) => {
     transformOrigin: `${c.cx}px ${c.cy}px`,
   } as CSSProperties;
 };
-
-// Each label is shown while its season holds; the shifts place them a quarter of the cycle apart.
-const seasons = [
-  { id: "spring", label: "Primăvară", dot: "var(--season-spring-a)", shift: "-2.5s" },
-  { id: "summer", label: "Vară", dot: "var(--season-summer-a)", shift: "-62.5s" },
-  { id: "autumn", label: "Toamnă", dot: "var(--season-autumn-b)", shift: "-42.5s" },
-  { id: "winter", label: "Iarnă", dot: "var(--season-winter-a)", shift: "-22.5s" },
-];
 
 const observations = [
   { cx: 204, cy: 165, delay: 0.3 },
@@ -190,15 +182,6 @@ export function LivingTree({ className }: { className?: string }) {
           </g>
         ))}
       </svg>
-
-      <div aria-hidden className="absolute top-2.5 left-3 z-10 grid text-[11.5px] text-muted">
-        {seasons.map((s) => (
-          <span key={s.id} data-season={s.id} className="season-label col-start-1 row-start-1 flex items-center gap-1.5" style={{ "--label-shift": s.shift } as CSSProperties}>
-            <span className="size-1.5 rounded-full" style={{ background: s.dot }} />
-            {s.label}
-          </span>
-        ))}
-      </div>
     </div>
   );
 }
