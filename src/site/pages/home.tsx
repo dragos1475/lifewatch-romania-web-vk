@@ -13,8 +13,8 @@ import { PLATFORMS } from "../content/platforms";
 import { PROJECTS } from "../content/projects";
 import { EXPLORER_MODULES } from "../nav";
 import { explorerHref, Link } from "../router";
-import { Atlas, ATLAS_H, ATLAS_W, AtlasLegend } from "../components/atlas";
-import { ArrowLink, CodeBlock, CreditedPhoto, ServiceStatus } from "../components/blocks";
+import { ArrowLink, CodeBlock, CreditedPhoto } from "../components/blocks";
+import { LivingTree } from "../components/living-tree";
 import { Container, Eyebrow, Figures, Reveal, SectionHeader, SPRING } from "../components/primitives";
 
 function Hero() {
@@ -61,16 +61,7 @@ function Hero() {
         </div>
 
         <div className="lg:col-span-6 2xl:col-span-5">
-          <div className="rounded-[18px] border border-border bg-surface p-1.5 shadow-card">
-            <div className="relative overflow-hidden rounded-xl border border-border bg-surface-2/60" style={{ aspectRatio: `${ATLAS_W} / ${ATLAS_H}` }}>
-              <div aria-hidden className="dot-grid absolute inset-0 opacity-70" />
-              <Atlas className="absolute inset-0" />
-              <ServiceStatus className="absolute top-2.5 right-2.5 max-w-[calc(100%-20px)]" />
-            </div>
-            <div className="px-2.5 pt-2 pb-1">
-              <AtlasLegend />
-            </div>
-          </div>
+          <LivingTree />
         </div>
       </div>
     </Container>
