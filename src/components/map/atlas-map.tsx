@@ -186,7 +186,7 @@ export function AtlasMap({ className, caption, busy, legend, overlays = [], onRe
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="pointer-events-none absolute top-3 left-1/2 z-[1000] -translate-x-1/2"
           >
-            <span className="inline-flex items-center gap-2 rounded-full bg-foreground px-3 py-1 text-[11px] font-medium text-background shadow-float">
+            <span className="inline-flex items-center gap-2 rounded-md bg-foreground px-2.5 py-1 text-[11px] font-medium text-background shadow-float">
               <span className="size-2.5 animate-spin rounded-full border-[1.5px] border-current border-r-transparent" />
               {t("ui.loading")}
             </span>

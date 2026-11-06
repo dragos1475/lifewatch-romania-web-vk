@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { ImageOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,11 +24,19 @@ export function Photo({
 }) {
   const [failed, setFailed] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  // A prerendered or cached image can finish loading before React attaches onLoad during hydration,
+  // which left it at opacity 0. Check once the element is attached; naturalWidth rules out lazy
+  // images that have not been fetched yet.
+  const syncLoaded = useCallback((img: HTMLImageElement | null) => {
+    if (img?.complete && img.naturalWidth > 0) setLoaded(true);
+  }, []);
   const show = src && !failed;
   return (
     <div className={cn("group/photo relative overflow-hidden bg-surface-2", className)}>
       {show ? (
         <img
+          ref={syncLoaded}
+          data-photo
           src={src}
           srcSet={srcSet}
           sizes={sizes}

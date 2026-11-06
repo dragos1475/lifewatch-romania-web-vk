@@ -12,7 +12,7 @@ export const toneFor = (index?: string) => BRAND_TONES[((Number.parseInt(index ?
 
 export function Container({ className, children }: { className?: string; children: ReactNode }) {
   // Fluid up to 1920px; the side padding grows with the screen instead of a narrow fixed column.
-  return <div className={cn("mx-auto w-full max-w-[1600px] px-5 sm:px-8 lg:px-12 2xl:px-16", className)}>{children}</div>;
+  return <div className={cn("mx-auto w-full max-w-[1600px] px-4 sm:px-8 lg:px-12 2xl:px-16", className)}>{children}</div>;
 }
 
 /** Fades content in once it scrolls into view. The noscript style in index.html keeps it visible without JS. */

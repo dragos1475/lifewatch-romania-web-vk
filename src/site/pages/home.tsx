@@ -24,7 +24,7 @@ function Hero() {
       <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse at 15% 0%, var(--accent-soft), transparent 48%)" }} />
       <Container className="relative grid gap-8 pt-10 pb-10 sm:gap-10 sm:pt-14 sm:pb-12 lg:grid-cols-12 lg:items-center lg:gap-12 xl:pt-16 xl:pb-14">
         <div className="grid content-start gap-5 lg:col-span-5 xl:gap-6">
-          <p className="flex w-fit items-center gap-2.5 rounded-full border border-accent/20 bg-accent-soft px-3.5 py-2 text-[10px] font-semibold tracking-[0.13em] text-accent uppercase sm:text-[11px]">
+          <p className="flex w-fit items-center gap-2.5 text-[11px] font-semibold tracking-[0.13em] text-accent uppercase">
             <span aria-hidden className="size-1.5 rounded-full bg-brand-orange" />
             Infrastructură națională de cercetare
           </p>
@@ -38,13 +38,13 @@ function Hero() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <Button asChild variant="primary" size="lg" className="h-11 rounded-full px-5 text-[14px]">
+            <Button asChild variant="primary" size="lg" className="h-11 px-5 text-[14px]">
               <a href={explorerHref()}>
                 Explorează datele
                 <ArrowUpRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" strokeWidth={1.75} />
               </a>
             </Button>
-            <Link to="infrastructura" className="group inline-flex h-11 items-center gap-2 rounded-full px-4 text-[14px] font-medium text-foreground transition-colors hover:bg-accent-soft hover:text-accent">
+            <Link to="infrastructura" className="group inline-flex h-11 items-center gap-2 rounded-lg px-4 text-[14px] font-medium text-foreground transition-colors hover:bg-accent-soft hover:text-accent">
               Descoperă infrastructura
               <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" strokeWidth={1.75} />
             </Link>
@@ -394,7 +394,7 @@ export default function HomePage() {
               <h2 className="font-display text-[27px] leading-tight font-medium tracking-[-0.03em] text-balance sm:text-[32px]">Conectăm datele, oamenii și locurile care protejează natura.</h2>
               <p className="text-[14px] leading-relaxed text-muted">Află cum infrastructura LifeWatch România poate susține cercetarea și colaborările interdisciplinare.</p>
             </div>
-            <Button asChild variant="primary" size="lg" className="h-11 shrink-0 rounded-full px-5 text-[14px]">
+            <Button asChild variant="primary" size="lg" className="h-11 shrink-0 px-5 text-[14px]">
               <Link to="contact">
                 Contactează echipa
                 <ArrowRight strokeWidth={1.75} />

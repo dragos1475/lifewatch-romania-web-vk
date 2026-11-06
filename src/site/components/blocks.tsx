@@ -33,7 +33,7 @@ export function ServiceStatus({ className }: { className?: string }) {
   const label = s.mode === "live" ? "API LifeWatch activ" : s.mode === "demo" ? "API indisponibil, date demonstrative" : "Se verifică API-ul LifeWatch";
   const title = s.mode === "demo" ? "Serviciul LifeWatch nu răspunde acum. Exploratorul afișează date demonstrative, marcate ca atare." : undefined;
   return (
-    <span role="status" title={title} className={cn("inline-flex items-center gap-2 rounded-full border border-border bg-surface/90 px-2.5 py-1 text-[12px] text-muted shadow-card backdrop-blur", className)}>
+    <span role="status" title={title} className={cn("inline-flex items-center gap-2 rounded-md border border-border bg-surface/90 px-2 py-1 text-[12px] text-muted shadow-card backdrop-blur", className)}>
       <StatusDot mode={s.mode} />
       <span className="truncate">{label}</span>
       {s.mode === "live" && s.latency !== null ? <span className="tabular text-[11px] text-subtle">{s.latency} ms</span> : null}

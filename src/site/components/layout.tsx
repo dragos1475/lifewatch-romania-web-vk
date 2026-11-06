@@ -19,7 +19,7 @@ import { useSearchShortcut, useShortcutLabel } from "./use-mod-key";
 function Wordmark({ size = "md", inverse = false }: { size?: "md" | "lg"; inverse?: boolean }) {
   return (
     <Link to="" className={cn("flex shrink-0 items-center gap-3 rounded-lg py-1", inverse ? "text-panel-foreground" : "text-foreground")} aria-label="LifeWatch România, Universitatea din București, pagina principală">
-      <LogoMark className={size === "lg" ? "size-12" : "size-10"} />
+      <LogoMark className={cn(size === "lg" ? "size-12" : "size-10", inverse && "rounded-[25%] ring-1 ring-white/25")} />
       <span className="grid gap-0.5 leading-tight">
         <span className={cn("font-semibold tracking-tight", size === "lg" ? "text-[22px]" : "text-[18px]")}>LifeWatch România</span>
         <span className={cn("font-medium", inverse ? "text-panel-foreground/65" : "text-muted", size === "lg" ? "text-[15px]" : "text-[13px]")}>Universitatea din București</span>
@@ -88,24 +88,24 @@ function Header({ onSearch }: { onSearch: () => void }) {
         <span className="flex-[2] bg-brand-teal" />
         <span className="flex-1 bg-brand-sand" />
       </div>
-      <Container className="flex h-[76px] items-center gap-4 sm:h-[82px]">
+      <Container className="flex h-[76px] items-center gap-2 sm:h-[82px] sm:gap-4">
         <Wordmark />
         <nav aria-label="Navigare principală" className="ml-4 hidden items-center gap-0.5 xl:flex">
           {NAV.map((n) => {
             const active = current === n.key;
             return (
-              <Link key={n.key} to={n.key} aria-current={active ? "page" : undefined} className="relative rounded-full px-3.5 py-2 text-[12px] font-medium text-muted transition-colors hover:text-foreground aria-[current=page]:text-accent">
-                {active ? <motion.span layoutId="site-nav" transition={SPRING} className="absolute inset-0 rounded-full bg-accent-soft" /> : null}
+              <Link key={n.key} to={n.key} aria-current={active ? "page" : undefined} className="relative rounded-lg px-3.5 py-2 text-[12px] font-medium text-muted transition-colors hover:text-foreground aria-[current=page]:text-accent">
+                {active ? <motion.span layoutId="site-nav" transition={SPRING} className="absolute inset-0 rounded-lg bg-accent-soft" /> : null}
                 <span className="relative">{n.label}</span>
               </Link>
             );
           })}
         </nav>
-        <div className="ml-auto flex items-center gap-2.5">
+        <div className="ml-auto flex items-center gap-1 sm:gap-2.5">
           <button
             type="button"
             onClick={onSearch}
-            className="hidden h-9 w-[200px] items-center gap-2 rounded-full border border-border bg-surface px-3 text-[13px] text-subtle shadow-card transition-colors hover:border-border-strong hover:text-muted md:flex"
+            className="hidden h-9 w-[200px] items-center gap-2 rounded-lg border border-border bg-surface px-3 text-[13px] text-subtle shadow-card transition-colors hover:border-border-strong hover:text-muted md:flex"
           >
             <Search className="size-3.5" strokeWidth={1.75} />
             <span className="flex-1 text-left">Caută</span>
