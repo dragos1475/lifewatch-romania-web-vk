@@ -2,20 +2,19 @@
 // Editorial layout pairs research imagery with clear paths into the data and infrastructure.
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowRight, ArrowUpRight, MapPin } from "lucide-react";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { NETWORKS, RS_INDICATORS, SOCIAL_INDICATORS } from "@/lib/catalog";
 import { BREWER, rampPalette } from "@/lib/palettes";
-import { HERO_PHOTO } from "@/lib/photos";
 import { ORG, INFRASTRUCTURES } from "../content/org";
 import { STATIONS, type Station } from "../content/stations";
 import { PLATFORMS } from "../content/platforms";
 import { PROJECTS } from "../content/projects";
 import { EXPLORER_MODULES } from "../nav";
 import { explorerHref, Link } from "../router";
-import { Atlas } from "../components/atlas";
 import { ArrowLink, CodeBlock, CreditedPhoto, ServiceStatus } from "../components/blocks";
+import { LivingTree } from "../components/living-tree";
 import { Container, Eyebrow, Figures, Reveal, SectionHeader, SPRING } from "../components/primitives";
 
 function Hero() {
@@ -56,22 +55,9 @@ function Hero() {
         </div>
 
         <div className="relative lg:col-span-7">
-          <div className="relative aspect-[1.04] min-h-[360px] overflow-hidden rounded-[28px] border border-border bg-surface-2 shadow-float sm:aspect-[1.2] sm:min-h-[460px] lg:aspect-[1.08]">
-            <CreditedPhoto photo={HERO_PHOTO} alt="Peisaj natural din Delta Dunării, zonă de cercetare pe termen lung" sizes="(min-width: 1024px) 58vw, 100vw" priority credit="label" className="absolute inset-0" />
-            <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-950/35 via-transparent to-zinc-950/10" />
+          <LivingTree>
             <ServiceStatus className="absolute top-4 right-4 z-10 max-w-[calc(100%-32px)]" />
-            <div className="absolute bottom-4 left-4 z-10 w-[min(58%,248px)] rounded-2xl border border-white/50 bg-surface/92 p-2.5 shadow-float backdrop-blur sm:bottom-5 sm:left-5 sm:w-[248px]">
-              <div className="flex items-center justify-between gap-2 px-1 pb-2">
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.1em] text-foreground uppercase">
-                  <MapPin className="size-3 text-accent" strokeWidth={1.8} />
-                  Delta Dunării
-                </span>
-                <span className="text-[10px] text-subtle">România</span>
-              </div>
-              <Atlas className="h-[104px] w-full overflow-hidden rounded-lg bg-surface-2 sm:h-[128px]" interactive={false} showNetworks={false} />
-              <p className="px-1 pt-2 text-[10px] text-muted">4 stații de cercetare · 6 platforme LTSER</p>
-            </div>
-          </div>
+          </LivingTree>
         </div>
       </Container>
     </section>
