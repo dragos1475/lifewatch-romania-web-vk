@@ -18,7 +18,7 @@ export default function NetworkPage() {
         <Figures items={LTSER_FACTS} />
       </Container>
 
-      <Container className="grid gap-8 pt-6 xl:grid-cols-2 xl:gap-10">
+      <Container className="grid gap-6 pt-6 xl:grid-cols-2 xl:gap-10">
         <section className="grid content-start gap-4">
           <SectionHeader index="01" eyebrow="Rețele" title="Rețele internaționale" />
           <ul className="grid border-t border-border">
@@ -61,7 +61,7 @@ export default function NetworkPage() {
         </section>
       </Container>
 
-      <Container className="grid gap-4 pt-8">
+      <Container className="grid gap-4 pt-6">
         <SectionHeader index="03" eyebrow="Infrastructuri" title="Infrastructuri europene de cercetare" />
         <Reveal className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {INFRASTRUCTURES.map((i) => (

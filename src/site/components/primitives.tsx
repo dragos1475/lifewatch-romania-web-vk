@@ -12,7 +12,7 @@ export const toneFor = (index?: string) => BRAND_TONES[((Number.parseInt(index ?
 
 export function Container({ className, children }: { className?: string; children: ReactNode }) {
   // Fluid up to 1920px; the side padding grows with the screen instead of a narrow fixed column.
-  return <div className={cn("mx-auto w-full max-w-[1600px] px-4 sm:px-8 lg:px-12 2xl:px-16", className)}>{children}</div>;
+  return <div className={cn("mx-auto w-full max-w-[1920px] px-4 sm:px-8 lg:px-12 2xl:px-16", className)}>{children}</div>;
 }
 
 /** Fades content in once it scrolls into view. The noscript style in index.html keeps it visible without JS. */
@@ -38,15 +38,15 @@ export function Eyebrow({ children, className }: { children: ReactNode; classNam
 /** Compact section header: marker, index and eyebrow above the title, optional link on the right. */
 export function SectionHeader({ index, eyebrow, title, lede, aside, id }: { index?: string; eyebrow: string; title: ReactNode; lede?: ReactNode; aside?: ReactNode; id?: string }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3 border-t border-border-strong/70 pt-5 sm:pt-6">
-      <div className="grid max-w-[80ch] gap-2">
+    <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-2 border-t border-border-strong/70 pt-4 sm:pt-5">
+      <div className="grid max-w-[80ch] gap-1.5">
         <div className="flex items-center gap-2.5">
           <span aria-hidden className={cn("size-1.5 shrink-0 rounded-full", toneFor(index))} />
           {index ? <span className="tabular text-[11px] text-subtle">{index}</span> : null}
           <Eyebrow>{eyebrow}</Eyebrow>
         </div>
-        <h2 id={id} className="scroll-mt-24 font-display text-[28px] leading-[1.08] font-medium tracking-[-0.035em] text-balance sm:text-[36px]">{title}</h2>
-        {lede ? <p className="max-w-[70ch] text-[14px] leading-[1.75] text-pretty text-muted sm:text-[15px]">{lede}</p> : null}
+        <h2 id={id} className="scroll-mt-24 font-display text-[26px] leading-[1.08] font-medium tracking-[-0.035em] text-balance sm:text-[32px]">{title}</h2>
+        {lede ? <p className="max-w-[80ch] text-[14px] leading-[1.65] text-pretty text-muted sm:text-[15px]">{lede}</p> : null}
       </div>
       {aside ? <div className="pb-0.5">{aside}</div> : null}
     </div>
@@ -56,13 +56,13 @@ export function SectionHeader({ index, eyebrow, title, lede, aside, id }: { inde
 /** Page opening used by every inner page. */
 export function PageIntro({ eyebrow, title, lede, children, crumbs }: { eyebrow: string; title: ReactNode; lede?: ReactNode; children?: ReactNode; crumbs?: ReactNode }) {
   return (
-    <Container className="pt-10 pb-10 sm:pt-14 sm:pb-12">
+    <Container className="pt-6 pb-6 sm:pt-9 sm:pb-8">
       {crumbs}
-      <div className="grid gap-6 lg:grid-cols-12 lg:items-end">
-        <div className="grid min-w-0 content-start gap-3 lg:col-span-8">
+      <div className="grid gap-5 lg:grid-cols-12 lg:items-end">
+        <div className="grid min-w-0 content-start gap-2.5 lg:col-span-8">
           <Eyebrow>{eyebrow}</Eyebrow>
-          <h1 className="font-display text-[38px] leading-[1.02] font-medium tracking-[-0.04em] text-balance sm:text-[52px]">{title}</h1>
-          {lede ? <p className="max-w-[75ch] text-[16px] leading-[1.75] text-pretty text-muted">{lede}</p> : null}
+          <h1 className="font-display text-[34px] leading-[1.04] font-medium tracking-[-0.04em] text-balance sm:text-[44px]">{title}</h1>
+          {lede ? <p className="max-w-[80ch] text-[15.5px] leading-[1.65] text-pretty text-muted">{lede}</p> : null}
         </div>
         {children ? <div className="min-w-0 lg:col-span-4">{children}</div> : null}
       </div>
@@ -73,11 +73,11 @@ export function PageIntro({ eyebrow, title, lede, children, crumbs }: { eyebrow:
 /** Key numbers separated by hairlines; the 1px gap shows the border colour through. */
 export function Figures({ items, className }: { items: { value: string; label: string }[]; className?: string }) {
   return (
-    <dl className={cn("grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4", className)}>
+    <dl className={cn("grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-4", className)}>
       {items.map((f) => (
-        <div key={f.label} className="grid content-start gap-2 rounded-2xl border border-border bg-surface p-4 shadow-card sm:p-5">
+        <div key={f.label} className="grid content-start gap-1.5 rounded-2xl border border-border bg-surface px-4 py-3 shadow-card sm:px-5 sm:py-4">
           <dt className="text-[12px] leading-snug text-muted sm:text-[13px]">{f.label}</dt>
-          <dd className="font-display text-[30px] leading-none tracking-[-0.04em] text-accent sm:text-[36px]">{f.value}</dd>
+          <dd className="font-display text-[27px] leading-none tracking-[-0.04em] text-accent sm:text-[32px]">{f.value}</dd>
         </div>
       ))}
     </dl>

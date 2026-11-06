@@ -84,16 +84,17 @@ export function CopyValue({ value, display, label }: { value: string; display?: 
 
 /** Photograph with a fixed ratio, hover zoom and the photographer's credit. */
 /** credit: "corner" links to the photo page; "label" is plain text, for photos inside another link. */
-export function CreditedPhoto({ photo, alt, className, sizes = "100vw", priority, credit = "corner" }: { photo: Photo; alt: string; className?: string; sizes?: string; priority?: boolean; credit?: "corner" | "label" | "none" }) {
+/** creditClassName styles the credit, for example to hide it on thumbnails at small widths. */
+export function CreditedPhoto({ photo, alt, className, sizes = "100vw", priority, credit = "corner", creditClassName }: { photo: Photo; alt: string; className?: string; sizes?: string; priority?: boolean; credit?: "corner" | "label" | "none"; creditClassName?: string }) {
   return (
     <div className={cn("relative overflow-hidden", className)}>
       <PhotoFrame src={photoSrc(photo, 1200)} srcSet={photoSrcSet(photo)} sizes={sizes} alt={alt} fallback={photo.location} className="size-full" priority={priority} />
       {credit === "corner" ? (
-        <a href={photo.page} target="_blank" rel="noreferrer" className="absolute right-2.5 bottom-2.5 rounded-md bg-zinc-950/50 px-1.5 py-0.5 text-[10px] text-white/85 backdrop-blur transition-colors hover:bg-zinc-950/70">
+        <a href={photo.page} target="_blank" rel="noreferrer" className={cn("absolute right-2.5 bottom-2.5 rounded-md bg-zinc-950/50 px-1.5 py-0.5 text-[10px] text-white/85 backdrop-blur transition-colors hover:bg-zinc-950/70", creditClassName)}>
           {photo.author} · Unsplash
         </a>
       ) : credit === "label" ? (
-        <span className="absolute right-2.5 bottom-2.5 rounded-md bg-zinc-950/50 px-1.5 py-0.5 text-[10px] text-white/85 backdrop-blur">{photo.author} · Unsplash</span>
+        <span className={cn("absolute right-2.5 bottom-2.5 rounded-md bg-zinc-950/50 px-1.5 py-0.5 text-[10px] text-white/85 backdrop-blur", creditClassName)}>{photo.author} · Unsplash</span>
       ) : null}
     </div>
   );

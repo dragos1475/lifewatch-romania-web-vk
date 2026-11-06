@@ -172,8 +172,8 @@ const FOOTER_COLUMNS: { title: string; links: { label: string; to?: string; hash
 
 function Footer() {
   return (
-    <footer className="mt-20 bg-panel text-panel-foreground">
-      <Container className="grid gap-10 py-12 sm:py-14 lg:grid-cols-12 lg:gap-14">
+    <footer className="mt-12 bg-panel text-panel-foreground sm:mt-14">
+      <Container className="grid gap-8 py-9 sm:py-10 lg:grid-cols-12 lg:gap-12">
         <div className="grid content-start gap-4 lg:col-span-4">
           <Wordmark size="lg" inverse />
           <p className="max-w-[40ch] text-[14px] leading-[1.75] text-panel-foreground/70">
@@ -189,11 +189,12 @@ function Footer() {
             ))}
           </ul>
         </div>
-        <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4 lg:col-span-8">
+        {/* Phones: one row per group, title on the left and links wrapped next to it. */}
+        <div className="grid gap-3.5 sm:grid-cols-4 sm:gap-x-6 lg:col-span-8">
           {FOOTER_COLUMNS.map((col) => (
-            <div key={col.title} className="grid content-start gap-3">
-              <p className="text-[10px] font-semibold tracking-[0.14em] text-panel-foreground/45 uppercase">{col.title}</p>
-              <ul className="grid gap-2">
+            <div key={col.title} className="grid grid-cols-[112px_minmax(0,1fr)] gap-3 sm:grid-cols-1 sm:content-start sm:gap-2.5">
+              <p className="pt-[3px] text-[10px] font-semibold tracking-[0.14em] text-panel-foreground/45 uppercase sm:pt-0">{col.title}</p>
+              <ul className="flex flex-wrap gap-x-3.5 gap-y-1 sm:grid sm:gap-1.5">
                 {col.links.map((l) => (
                   <li key={l.label}>
                     {l.to !== undefined ? (

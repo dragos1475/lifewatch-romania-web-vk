@@ -1,7 +1,7 @@
 // Animated tree for the home page hero (ported from v0). Purely decorative, so it is hidden from
-// screen readers and stops moving when the visitor prefers reduced motion.
-import type { ReactNode } from "react";
-import { Leaf } from "lucide-react";
+// screen readers. The canopy runs through the four seasons in one slow CSS cycle (.season-* in
+// src/index.css), which also works before hydration; with reduced motion it stays in summer.
+import type { CSSProperties } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 
@@ -25,15 +25,38 @@ const roots = [
   "M286 366 C327 377 350 381 390 381",
 ];
 
+// Tone "a" leans green, tone "b" leans teal in summer and orange in autumn.
 const canopy = [
-  { cx: 279, cy: 116, rx: 50, ry: 42, fill: "var(--brand-green)", opacity: 0.2, delay: 0.16 },
-  { cx: 230, cy: 151, rx: 54, ry: 40, fill: "var(--brand-teal)", opacity: 0.16, delay: 0.24 },
-  { cx: 326, cy: 148, rx: 54, ry: 42, fill: "var(--brand-green)", opacity: 0.18, delay: 0.3 },
-  { cx: 185, cy: 191, rx: 43, ry: 34, fill: "var(--brand-green)", opacity: 0.15, delay: 0.38 },
-  { cx: 372, cy: 190, rx: 44, ry: 35, fill: "var(--brand-teal)", opacity: 0.15, delay: 0.42 },
-  { cx: 235, cy: 199, rx: 49, ry: 36, fill: "var(--brand-green)", opacity: 0.17, delay: 0.48 },
-  { cx: 326, cy: 197, rx: 50, ry: 38, fill: "var(--brand-green)", opacity: 0.17, delay: 0.52 },
-  { cx: 280, cy: 174, rx: 62, ry: 47, fill: "var(--brand-teal)", opacity: 0.11, delay: 0.58 },
+  { cx: 279, cy: 116, rx: 50, ry: 42, tone: "a", opacity: 0.26, delay: 0.16 },
+  { cx: 230, cy: 151, rx: 54, ry: 40, tone: "b", opacity: 0.22, delay: 0.24 },
+  { cx: 326, cy: 148, rx: 54, ry: 42, tone: "a", opacity: 0.24, delay: 0.3 },
+  { cx: 185, cy: 191, rx: 43, ry: 34, tone: "a", opacity: 0.21, delay: 0.38 },
+  { cx: 372, cy: 190, rx: 44, ry: 35, tone: "b", opacity: 0.21, delay: 0.42 },
+  { cx: 235, cy: 199, rx: 49, ry: 36, tone: "a", opacity: 0.23, delay: 0.48 },
+  { cx: 326, cy: 197, rx: 50, ry: 38, tone: "a", opacity: 0.23, delay: 0.52 },
+  { cx: 280, cy: 174, rx: 62, ry: 47, tone: "b", opacity: 0.15, delay: 0.58 },
+] as const;
+
+// Outer clusters change colour first, the centre of the crown last.
+const leafStyle = (c: (typeof canopy)[number]) => {
+  const shift = (Math.hypot(c.cx - 280, c.cy - 174) / 100) * 5;
+  return {
+    "--leaf-spring": `var(--season-spring-${c.tone})`,
+    "--leaf-summer": `var(--season-summer-${c.tone})`,
+    "--leaf-autumn": `var(--season-autumn-${c.tone})`,
+    "--leaf-winter": `var(--season-winter-${c.tone})`,
+    "--leaf-o": c.opacity,
+    "--leaf-shift": `-${shift.toFixed(2)}s`,
+    transformOrigin: `${c.cx}px ${c.cy}px`,
+  } as CSSProperties;
+};
+
+// Each label is shown while its season holds; the shifts place them a quarter of the cycle apart.
+const seasons = [
+  { id: "spring", label: "Primăvară", dot: "var(--season-spring-a)", shift: "-2.5s" },
+  { id: "summer", label: "Vară", dot: "var(--season-summer-a)", shift: "-62.5s" },
+  { id: "autumn", label: "Toamnă", dot: "var(--season-autumn-b)", shift: "-42.5s" },
+  { id: "winter", label: "Iarnă", dot: "var(--season-winter-a)", shift: "-22.5s" },
 ];
 
 const observations = [
@@ -46,23 +69,16 @@ const observations = [
   { cx: 280, cy: 184, delay: 1.7 },
 ];
 
-export function LivingTree({ className, children }: { className?: string; children?: ReactNode }) {
+export function LivingTree({ className }: { className?: string }) {
   const reduceMotion = useReducedMotion() === true;
 
   return (
     <div
-      className={cn(
-        "relative isolate aspect-[1.04] min-h-[340px] overflow-hidden rounded-[28px] border border-border bg-surface-2 shadow-float sm:aspect-[1.4] sm:min-h-[440px] lg:aspect-[1.08]",
-        className,
-      )}
+      className={cn("relative isolate overflow-hidden rounded-[14px] border border-border bg-surface-2", className)}
       style={{ background: "radial-gradient(ellipse at 50% 38%, var(--surface) 0%, var(--surface-2) 62%, var(--background) 100%)" }}
     >
       <div aria-hidden className="dot-grid pointer-events-none absolute inset-0 opacity-40" />
-      <svg
-        viewBox="0 0 560 460"
-        className="absolute inset-0 size-full"
-        aria-hidden
-      >
+      <svg viewBox="96 24 368 412" className="absolute inset-0 size-full" aria-hidden>
         <defs>
           <radialGradient id="tree-glow">
             <stop offset="0%" stopColor="var(--brand-green)" stopOpacity="0.12" />
@@ -135,12 +151,11 @@ export function LivingTree({ className, children }: { className?: string; childr
         {canopy.map((cluster) => (
           <motion.ellipse
             key={`${cluster.cx}-${cluster.cy}`}
+            className="season-leaf"
             cx={cluster.cx}
             cy={cluster.cy}
             rx={cluster.rx}
             ry={cluster.ry}
-            fill={cluster.fill}
-            fillOpacity={cluster.opacity}
             stroke="var(--surface)"
             strokeOpacity="0.48"
             strokeWidth="1.2"
@@ -155,7 +170,7 @@ export function LivingTree({ className, children }: { className?: string; childr
                 ? { duration: 0 }
                 : { opacity: { duration: 0.45, delay: cluster.delay }, scale: { duration: 0.6, delay: cluster.delay }, y: { duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: cluster.delay }, rotate: { duration: 7, repeat: Infinity, ease: "easeInOut", delay: cluster.delay } }
             }
-            style={{ transformOrigin: `${cluster.cx}px ${cluster.cy}px` }}
+            style={leafStyle(cluster)}
           />
         ))}
 
@@ -176,11 +191,14 @@ export function LivingTree({ className, children }: { className?: string; childr
         ))}
       </svg>
 
-      <p className="absolute bottom-4 left-4 z-10 flex max-w-[calc(100%-2rem)] items-center gap-2 text-[12px] text-muted sm:bottom-5 sm:left-5">
-        <Leaf className="size-3.5 shrink-0 text-brand-green" strokeWidth={1.8} />
-        Ecosisteme · observație pe termen lung
-      </p>
-      {children}
+      <div aria-hidden className="absolute top-2.5 left-3 z-10 grid text-[11.5px] text-muted">
+        {seasons.map((s) => (
+          <span key={s.id} data-season={s.id} className="season-label col-start-1 row-start-1 flex items-center gap-1.5" style={{ "--label-shift": s.shift } as CSSProperties}>
+            <span className="size-1.5 rounded-full" style={{ background: s.dot }} />
+            {s.label}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

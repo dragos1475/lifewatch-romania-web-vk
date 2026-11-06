@@ -46,7 +46,7 @@ export default function PlatformsPage() {
         </div>
       </Container>
 
-      <Container className="grid gap-4 pt-8">
+      <Container className="grid gap-4 pt-6">
         <SectionHeader index="01" eyebrow="Exploratorul LTSER" title="Platforme documentate în explorator" />
         <Reveal className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {PLATFORMS.map((p, i) => (

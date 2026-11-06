@@ -58,6 +58,16 @@
   --brand-teal: #4aa4a6;
   --brand-sand: #e49950;
 
+  /* Canopy colours for the seasons cycle on the home page tree (tone a and tone b). */
+  --season-spring-a: #7cbb5a;
+  --season-spring-b: #a8cf72;
+  --season-summer-a: var(--brand-green);
+  --season-summer-b: var(--brand-teal);
+  --season-autumn-a: var(--brand-sand);
+  --season-autumn-b: var(--brand-orange);
+  --season-winter-a: #8fa3b9;
+  --season-winter-b: #b3c1d0;
+
   --background: #fafafa;
   --foreground: #0c1222;
   --surface: #ffffff;
@@ -92,6 +102,15 @@
   --brand-teal: #5ec2c4;
   --brand-sand: #f0b06a;
 
+  --season-spring-a: #8fcf6c;
+  --season-spring-b: #b6dd88;
+  --season-summer-a: var(--brand-green);
+  --season-summer-b: var(--brand-teal);
+  --season-autumn-a: var(--brand-sand);
+  --season-autumn-b: var(--brand-orange);
+  --season-winter-a: #7f92aa;
+  --season-winter-b: #a1b1c4;
+
   --background: #0a0e17;
   --foreground: #eef1f7;
   --surface: #111723;
@@ -117,6 +136,38 @@
   --panel: #13213f;
   --panel-foreground: #eef1f7;
   color-scheme: dark;
+}
+
+/* Seasons on the home page tree: one 80 s cycle, spring, summer, autumn, winter. Each season holds
+   for about 11 s and fades into the next over about 9 s. Every leaf cluster sets its own colours
+   (--leaf-*), base opacity (--leaf-o) and phase (--leaf-shift) inline. */
+@keyframes season-canopy {
+  0%, 14% { fill: var(--leaf-spring); fill-opacity: var(--leaf-o); }
+  25%, 39% { fill: var(--leaf-summer); fill-opacity: calc(var(--leaf-o) * 1.15); }
+  50%, 64% { fill: var(--leaf-autumn); fill-opacity: var(--leaf-o); }
+  75%, 89% { fill: var(--leaf-winter); fill-opacity: calc(var(--leaf-o) * 0.55); }
+  100% { fill: var(--leaf-spring); fill-opacity: var(--leaf-o); }
+}
+@keyframes season-label {
+  0%, 17% { opacity: 1; transform: none; }
+  22%, 92% { opacity: 0; transform: translateY(3px); }
+  97%, 100% { opacity: 1; transform: none; }
+}
+.season-leaf {
+  fill: var(--leaf-summer);
+  fill-opacity: calc(var(--leaf-o) * 1.15);
+  animation: season-canopy 80s ease-in-out infinite;
+  animation-delay: var(--leaf-shift, 0s);
+}
+.season-label {
+  opacity: 0;
+  animation: season-label 80s ease-in-out infinite;
+  animation-delay: var(--label-shift, 0s);
+}
+@media (prefers-reduced-motion: reduce) {
+  .season-leaf,
+  .season-label { animation: none; }
+  .season-label[data-season="summer"] { opacity: 1; }
 }
 
 @keyframes pop-in {

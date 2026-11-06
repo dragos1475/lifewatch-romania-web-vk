@@ -28,11 +28,11 @@ export default function ApiPage() {
         </div>
       </PageIntro>
 
-      <Container className="grid gap-8 lg:grid-cols-12 lg:gap-10">
+      <Container className="grid gap-6 lg:grid-cols-12 lg:gap-10">
         <div className="hidden lg:col-span-3 lg:block">
           <Toc items={ENDPOINTS.map((e) => ({ id: slug(e.path), title: e.path }))} label="Rute" layoutId="toc-api" />
         </div>
-        <div className="grid min-w-0 gap-8 lg:col-span-9">
+        <div className="grid min-w-0 gap-6 lg:col-span-9">
           <Reveal className="grid gap-2 rounded-[18px] border border-border bg-surface p-4 shadow-card">
             <h2 className="text-[17px] font-semibold tracking-tight">Note de utilizare</h2>
             <ul className="grid gap-1 text-[14px] leading-relaxed text-muted">

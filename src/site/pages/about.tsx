@@ -36,7 +36,7 @@ export default function AboutPage() {
         </figure>
       </Container>
 
-      <Container className="grid gap-8 pt-8 xl:grid-cols-2 xl:gap-10">
+      <Container className="grid gap-6 pt-6 xl:grid-cols-2 xl:gap-10">
         <section className="grid content-start gap-4">
           <SectionHeader index="01" eyebrow="Misiune" title="Obiective" />
           <div className="grid gap-3 md:grid-cols-2">
@@ -75,7 +75,7 @@ export default function AboutPage() {
         </section>
       </Container>
 
-      <Container className="grid gap-4 pt-8">
+      <Container className="grid gap-4 pt-6">
         <SectionHeader index="03" eyebrow="1922–2007" title="Istoric" />
         <Reveal>
           <ol className="grid gap-px overflow-hidden rounded-[18px] border border-border bg-border md:grid-cols-2 xl:grid-cols-3">
@@ -99,7 +99,7 @@ export default function AboutPage() {
         </Reveal>
       </Container>
 
-      <Container className="grid gap-4 pt-8">
+      <Container className="grid gap-4 pt-6">
         <SectionHeader
           index="04"
           id="fotografii"

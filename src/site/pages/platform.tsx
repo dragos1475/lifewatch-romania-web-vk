@@ -42,7 +42,7 @@ export function PlatformPage({ platform }: { platform: Platform }) {
         <Figures items={figures} />
       </Container>
 
-      <Container className="grid gap-8 pt-6 lg:grid-cols-12">
+      <Container className="grid gap-6 pt-6 lg:grid-cols-12 lg:gap-8">
         <Reveal className="grid content-start gap-3 lg:col-span-7">
           <p className="text-[17px] leading-[1.55] font-medium tracking-tight text-pretty">{platform.summary}</p>
           {platform.paragraphs.map((p) => (
@@ -86,7 +86,7 @@ export function PlatformPage({ platform }: { platform: Platform }) {
         </Reveal>
       </Container>
 
-      <Container className="pt-8">
+      <Container className="pt-6">
         <Reveal className="grid gap-3 rounded-[18px] border border-border bg-surface p-1.5 shadow-card">
           <div className="flex flex-wrap items-end justify-between gap-3 px-3.5 pt-3">
             <div>
@@ -110,7 +110,7 @@ export function PlatformPage({ platform }: { platform: Platform }) {
         </Reveal>
       </Container>
 
-      <Container className="pt-8">
+      <Container className="pt-6">
         <p className="mb-3 text-[12px] font-medium text-subtle">Celelalte platforme</p>
         <ul className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
           {others.map((p) => (

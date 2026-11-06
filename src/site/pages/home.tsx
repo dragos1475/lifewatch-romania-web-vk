@@ -13,6 +13,7 @@ import { PLATFORMS } from "../content/platforms";
 import { PROJECTS } from "../content/projects";
 import { EXPLORER_MODULES } from "../nav";
 import { explorerHref, Link } from "../router";
+import { Atlas, ATLAS_H, ATLAS_W, AtlasLegend } from "../components/atlas";
 import { ArrowLink, CodeBlock, CreditedPhoto, ServiceStatus } from "../components/blocks";
 import { LivingTree } from "../components/living-tree";
 import { Container, Eyebrow, Figures, Reveal, SectionHeader, SPRING } from "../components/primitives";
@@ -21,18 +22,18 @@ function Hero() {
   return (
     <section className="relative overflow-hidden">
       <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse at 15% 0%, var(--accent-soft), transparent 48%)" }} />
-      <Container className="relative grid gap-8 pt-10 pb-10 sm:gap-10 sm:pt-14 sm:pb-12 lg:grid-cols-12 lg:items-center lg:gap-12 xl:pt-16 xl:pb-14">
-        <div className="grid content-start gap-5 lg:col-span-5 xl:gap-6">
+      <Container className="relative grid gap-6 pt-7 pb-6 sm:gap-8 sm:pt-10 sm:pb-8 lg:grid-cols-12 lg:items-center lg:gap-10 xl:pt-12 xl:pb-10">
+        <div className="grid content-start gap-4 lg:col-span-6 xl:gap-5">
           <p className="flex w-fit items-center gap-2.5 text-[11px] font-semibold tracking-[0.13em] text-accent uppercase">
             <span aria-hidden className="size-1.5 rounded-full bg-brand-orange" />
             Infrastructură națională de cercetare
           </p>
-          <div className="grid gap-4">
-            <h1 className="max-w-[13ch] font-display text-[46px] leading-[0.98] font-medium tracking-[-0.045em] text-balance sm:text-[62px] xl:text-[68px] 2xl:text-[76px]">
+          <div className="grid gap-3">
+            <h1 className="max-w-[22ch] font-display text-[40px] leading-[1] font-medium tracking-[-0.045em] text-balance sm:text-[54px] xl:text-[58px] 2xl:text-[66px]">
               Observăm natura.
               <span className="mt-1 block italic text-accent">Înțelegem schimbarea.</span>
             </h1>
-            <p className="max-w-[50ch] text-[16px] leading-[1.8] text-pretty text-muted sm:text-[17px]">
+            <p className="max-w-[58ch] text-[15.5px] leading-[1.7] text-pretty text-muted sm:text-[16.5px]">
               LifeWatch România conectează cercetarea de teren, monitorizarea pe termen lung și analiza datelor pentru a înțelege biodiversitatea și ecosistemele.
             </p>
           </div>
@@ -48,16 +49,31 @@ function Hero() {
               <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" strokeWidth={1.75} />
             </Link>
           </div>
-          <div className="flex items-center gap-3 border-t border-border pt-4 text-[12px] text-subtle sm:mt-1">
+          <div className="flex items-center gap-3 border-t border-border pt-3 text-[12px] text-subtle">
             <span aria-hidden className="h-px w-8 bg-brand-orange" />
             <span>O infrastructură a {ORG.host}</span>
           </div>
         </div>
 
-        <div className="relative lg:col-span-7">
-          <LivingTree>
-            <ServiceStatus className="absolute top-4 right-4 z-10 max-w-[calc(100%-32px)]" />
-          </LivingTree>
+        <div className="lg:col-span-6">
+          <div className="rounded-[20px] border border-border bg-surface p-1.5 shadow-card">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-2 pt-0.5 pb-1.5">
+              <p className="text-[12.5px] font-medium">Stații de cercetare și platforme LTSER</p>
+              <ServiceStatus className="border-0 bg-transparent px-0 py-0 shadow-none backdrop-blur-none" />
+            </div>
+            <div className="grid gap-1.5 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+              <LivingTree className="h-[170px] sm:h-auto" />
+              <div className="grid content-start gap-2">
+                <div className="relative overflow-hidden rounded-[14px] border border-border bg-surface-2/60" style={{ aspectRatio: `${ATLAS_W} / ${ATLAS_H}` }}>
+                  <div aria-hidden className="dot-grid absolute inset-0 opacity-70" />
+                  <Atlas className="absolute inset-0" showNetworks={false} />
+                </div>
+                <div className="px-1.5 pb-1">
+                  <AtlasLegend showNetworks={false} />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </Container>
     </section>
@@ -66,16 +82,16 @@ function Hero() {
 
 function StationCard({ station }: { station: Station }) {
   return (
-    <Link to={`infrastructura/${station.slug}`} className="group flex flex-col overflow-hidden rounded-[22px] border border-border bg-surface p-2 shadow-card transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-accent/35 hover:shadow-float">
-      <CreditedPhoto photo={station.photo} alt={`${station.photo.location}, imagine pentru ${station.name}`} sizes="(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 100vw" credit="label" className="aspect-[16/10] rounded-[15px]" />
-      <div className="grid content-start gap-2 px-2.5 pt-4 pb-3">
-        <p className="text-[11px] font-medium tracking-[0.08em] text-subtle uppercase">Din {station.founded} · {station.county}</p>
-        <h3 className="flex items-start gap-2 font-display text-[21px] leading-tight font-medium tracking-[-0.025em]">
+    <Link to={`infrastructura/${station.slug}`} className="group grid grid-cols-[104px_minmax(0,1fr)] gap-3 overflow-hidden rounded-[18px] border border-border bg-surface p-2 shadow-card transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-accent/35 hover:shadow-float sm:flex sm:flex-col sm:gap-0 sm:rounded-[22px]">
+      <CreditedPhoto photo={station.photo} alt={`${station.photo.location}, imagine pentru ${station.name}`} sizes="(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 104px" credit="label" creditClassName="hidden sm:block" className="min-h-[104px] rounded-[10px] sm:aspect-[16/9] sm:min-h-0 sm:rounded-[14px]" />
+      <div className="grid content-start gap-1 py-1 pr-1 sm:gap-1.5 sm:px-2.5 sm:pt-3 sm:pb-2.5">
+        <p className="text-[10.5px] font-medium tracking-[0.08em] text-subtle uppercase sm:text-[11px]">Din {station.founded} · {station.county}</p>
+        <h3 className="flex items-start gap-2 font-display text-[17px] leading-tight font-medium tracking-[-0.025em] sm:text-[20px]">
           {station.name}
           <ArrowRight className="mt-1 size-3.5 shrink-0 text-subtle transition-transform group-hover:translate-x-0.5 group-hover:text-accent" strokeWidth={1.75} />
         </h3>
-        <p className="line-clamp-3 text-[13px] leading-[1.7] text-muted">{station.summary}</p>
-        <span className="mt-1 inline-flex items-center gap-1.5 text-[12px] font-semibold text-accent">
+        <p className="line-clamp-3 text-[13px] leading-[1.6] text-muted">{station.summary}</p>
+        <span className="hidden items-center gap-1.5 text-[12px] font-semibold text-accent sm:inline-flex">
           Explorează stația
           <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" strokeWidth={1.75} />
         </span>
@@ -86,7 +102,7 @@ function StationCard({ station }: { station: Station }) {
 
 function Stations() {
   return (
-    <Container className="grid gap-6 py-14 sm:py-16">
+    <Container className="grid gap-4 py-8 sm:gap-5 sm:py-10">
       <SectionHeader
         index="01"
         eyebrow="Infrastructură"
@@ -185,18 +201,18 @@ function Explorer() {
   const [active, setActive] = useState(EXPLORER_MODULES[0].id);
   const current = EXPLORER_MODULES.find((m) => m.id === active)!;
   return (
-    <Container className="py-10 sm:py-14">
+    <Container className="py-2 sm:py-4">
       <Reveal>
         <div className="relative isolate overflow-hidden rounded-[28px] border border-white/10 bg-panel text-panel-foreground shadow-float">
           <div aria-hidden className="pointer-events-none absolute inset-0 opacity-35" style={{ background: "radial-gradient(ellipse at 90% 0%, rgb(255 255 255 / 0.12), transparent 42%)" }} />
-          <div className="relative grid gap-8 p-5 sm:p-8 lg:grid-cols-12 lg:gap-12">
+          <div className="relative grid gap-6 p-5 sm:p-7 lg:grid-cols-12 lg:gap-10">
             <div className="grid content-start gap-3.5 lg:col-span-5">
               <div className="flex items-baseline gap-3">
                 <span className="tabular text-[12px] text-white/50">02</span>
                 <Eyebrow className="text-brand-sand">Date</Eyebrow>
               </div>
               <h2 className="font-display text-[30px] leading-[1.08] font-medium tracking-[-0.03em] sm:text-[36px]">Exploratorul LTSER</h2>
-              <p className="text-[15px] leading-[1.75] text-white/70">
+              <p className="text-[15px] leading-[1.65] text-white/70">
                 Aplicație web pentru consultarea datelor: teledetecție, rețele de stații, măsurători brute și indicatori sociali pentru cele șase platforme LTSER. Datele provin din serviciile API ale infrastructurii.
               </p>
               <div className="flex flex-wrap gap-2.5">
@@ -259,7 +275,7 @@ function Explorer() {
 
 function Platforms() {
   return (
-    <Container className="grid gap-6 py-14 sm:py-16">
+    <Container className="grid gap-4 py-8 sm:gap-5 sm:py-10">
       <SectionHeader
         index="03"
         eyebrow="Platforme LTSER"
@@ -267,21 +283,26 @@ function Platforms() {
         lede="Platforme de cercetare socio-ecologică pe termen lung documentate în explorator."
         aside={<ArrowLink to="platforme">Despre platforme</ArrowLink>}
       />
-      <Reveal className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <Reveal className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
         {PLATFORMS.map((p) => (
-          <Link key={p.slug} to={`platforme/${p.slug}`} className="group overflow-hidden rounded-[22px] border border-border bg-surface shadow-card transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-accent/35 hover:shadow-float">
-            <div className="relative aspect-[16/10] overflow-hidden">
-              <CreditedPhoto photo={p.photo} alt={`${p.name}, ${p.photo.location}`} sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw" credit="label" className="absolute inset-0" />
-              <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-950/85 via-zinc-950/15 to-transparent" />
-              <span aria-hidden className="absolute top-3 right-3 grid size-9 place-items-center rounded-full border border-white/25 bg-zinc-950/20 text-white backdrop-blur transition-colors group-hover:bg-white group-hover:text-foreground">
+          <Link key={p.slug} to={`platforme/${p.slug}`} className="group grid grid-cols-[104px_minmax(0,1fr)] gap-3 overflow-hidden rounded-[18px] border border-border bg-surface p-2 shadow-card transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-accent/35 hover:shadow-float sm:block sm:rounded-[22px] sm:p-0">
+            <div className="relative min-h-[84px] overflow-hidden rounded-[10px] sm:aspect-[2/1] sm:min-h-0 sm:rounded-none">
+              <CreditedPhoto photo={p.photo} alt={`${p.name}, ${p.photo.location}`} sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 104px" credit="label" creditClassName="hidden sm:block" className="absolute inset-0" />
+              <div aria-hidden className="pointer-events-none absolute inset-0 hidden bg-gradient-to-t from-zinc-950/85 via-zinc-950/15 to-transparent sm:block" />
+              <span aria-hidden className="absolute top-3 right-3 hidden size-9 place-items-center rounded-full border border-white/25 bg-zinc-950/20 text-white backdrop-blur transition-colors group-hover:bg-white group-hover:text-foreground sm:grid">
                 <ArrowUpRight className="size-4" strokeWidth={1.75} />
               </span>
-              <div className="absolute inset-x-0 bottom-0 grid gap-1 p-4 pr-12 text-white sm:p-5 sm:pr-12">
+              <div className="absolute inset-x-0 bottom-0 hidden gap-1 p-5 pr-12 text-white sm:grid">
                 <p className="text-[10px] font-semibold tracking-[0.14em] text-white/75 uppercase">{p.kind}</p>
-                <h3 className="font-display text-[21px] leading-[1.12] font-medium tracking-[-0.025em] sm:text-[24px]">{p.name}</h3>
+                <h3 className="font-display text-[22px] leading-[1.12] font-medium tracking-[-0.025em] lg:text-[24px]">{p.name}</h3>
               </div>
             </div>
-            <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3.5 sm:px-5">
+            <div className="grid content-center gap-0.5 py-1 pr-1 sm:hidden">
+              <p className="text-[10px] font-semibold tracking-[0.12em] text-subtle uppercase">{p.kind}</p>
+              <h3 className="font-display text-[17px] leading-tight font-medium tracking-[-0.025em]">{p.name}</h3>
+              <p className="text-[12px] text-muted">{p.region} · <span className="tabular font-medium text-accent">{p.figures[0].value}</span></p>
+            </div>
+            <div className="hidden items-center justify-between gap-3 border-t border-border px-5 py-2.5 sm:flex">
               <span className="truncate text-[12px] text-muted">{p.region}</span>
               <span className="tabular shrink-0 text-[12px] font-medium text-accent">{p.figures[0].value}</span>
             </div>
@@ -305,7 +326,7 @@ function DataAndNetwork() {
     ["date", "Catalog de date", "Seturile de date, pe teme"],
   ];
   return (
-    <Container className="grid gap-10 py-14 sm:py-16 lg:grid-cols-2 lg:gap-14">
+    <Container className="grid gap-8 pt-2 pb-8 sm:pb-10 lg:grid-cols-2 lg:gap-12">
       <section className="grid content-start gap-4">
         <SectionHeader index="04" eyebrow="Date" title="Acces la date" lede="Măsurătorile brute ale celor 25 de stații, prin API-ul LifeWatch: cereri HTTP GET, răspunsuri JSON." />
         <Reveal className="grid gap-4 xl:grid-cols-2">
@@ -331,10 +352,10 @@ function DataAndNetwork() {
           <ul className="grid border-t border-border">
             {INFRASTRUCTURES.map((i) => (
               <li key={i.id} className="border-b border-border">
-                <a href={i.url} target="_blank" rel="noreferrer" className="group grid grid-cols-[120px_minmax(0,1fr)_auto] items-baseline gap-4 py-2.5 sm:grid-cols-[150px_minmax(0,1fr)_auto]">
-                  <span className="text-[14px] font-semibold tracking-tight">{i.name}</span>
-                  <span className="text-[13.5px] leading-relaxed text-muted">{i.role}</span>
-                  <ArrowUpRight className="size-3.5 self-center text-subtle transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-accent" strokeWidth={1.75} />
+                <a href={i.url} target="_blank" rel="noreferrer" className="group grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-4 gap-y-0.5 py-2.5 sm:grid-cols-[150px_minmax(0,1fr)_auto]">
+                  <span className="col-start-1 row-start-1 text-[14px] font-semibold tracking-tight">{i.name}</span>
+                  <span className="col-start-1 row-start-2 text-[13.5px] leading-relaxed text-muted sm:col-start-2 sm:row-start-1">{i.role}</span>
+                  <ArrowUpRight className="col-start-2 row-start-1 size-3.5 self-center sm:col-start-3 text-subtle transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-accent" strokeWidth={1.75} />
                 </a>
               </li>
             ))}
@@ -372,12 +393,12 @@ export default function HomePage() {
       <Explorer />
       <Platforms />
       <DataAndNetwork />
-      <Container className="pb-14 sm:pb-20">
+      <Container>
         <Reveal>
-          <div className="flex flex-col gap-5 rounded-[26px] border border-accent/15 bg-accent-soft p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+          <div className="flex flex-col gap-4 rounded-[22px] border border-accent/15 bg-accent-soft p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
             <div className="grid max-w-[62ch] gap-2">
               <Eyebrow>Colaborare și cercetare</Eyebrow>
-              <h2 className="font-display text-[27px] leading-tight font-medium tracking-[-0.03em] text-balance sm:text-[32px]">Conectăm datele, oamenii și locurile care protejează natura.</h2>
+              <h2 className="font-display text-[24px] leading-tight font-medium tracking-[-0.03em] text-balance sm:text-[28px]">Conectăm datele, oamenii și locurile care protejează natura.</h2>
               <p className="text-[14px] leading-relaxed text-muted">Află cum infrastructura LifeWatch România poate susține cercetarea și colaborările interdisciplinare.</p>
             </div>
             <Button asChild variant="primary" size="lg" className="h-11 shrink-0 px-5 text-[14px]">

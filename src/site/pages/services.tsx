@@ -34,7 +34,7 @@ export default function ServicesPage() {
         </Reveal>
       </Container>
 
-      <Container className="grid gap-8 pt-8 xl:grid-cols-12 xl:gap-10">
+      <Container className="grid gap-6 pt-6 xl:grid-cols-12 xl:gap-10">
         <section className="grid content-start gap-4 xl:col-span-7">
           <SectionHeader
             index="02"

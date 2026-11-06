@@ -66,8 +66,8 @@ export function StationPage({ station }: { station: Station }) {
   return (
     <Container className="pt-6 sm:pt-8">
       <Crumbs items={[{ label: "Infrastructură", node: <Link to="infrastructura" className="hover:text-foreground">Infrastructură</Link> }, { label: station.short }]} />
-      <div className="grid gap-8 lg:grid-cols-12 lg:gap-10">
-        <div className="grid min-w-0 content-start gap-8 lg:col-span-8">
+      <div className="grid gap-6 lg:grid-cols-12 lg:gap-10">
+        <div className="grid min-w-0 content-start gap-6 lg:col-span-8">
           <header className="grid gap-2.5">
             <Eyebrow>Stație de cercetare · din {station.founded}</Eyebrow>
             <h1 className="text-[32px] leading-[1.05] font-semibold tracking-[-0.03em] text-balance sm:text-[42px]">{station.name}</h1>

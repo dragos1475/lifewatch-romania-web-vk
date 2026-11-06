@@ -25,7 +25,7 @@ export default function DocsPage() {
         crumbs={<Crumbs items={[{ label: "Date", node: <Link to="date" className="hover:text-foreground">Date și servicii</Link> }, { label: "Documentație" }]} />}
       />
 
-      <Container className="grid gap-8 xl:grid-cols-2 xl:gap-10">
+      <Container className="grid gap-6 xl:grid-cols-2 xl:gap-10">
         <section className="grid content-start gap-4">
           <SectionHeader index="01" eyebrow="Date" title="Convenții" />
           <dl className="grid border-t border-border">
@@ -53,7 +53,7 @@ export default function DocsPage() {
         </section>
       </Container>
 
-      <Container className="grid gap-8 pt-8 xl:grid-cols-2 xl:gap-10">
+      <Container className="grid gap-6 pt-6 xl:grid-cols-2 xl:gap-10">
         <section className="grid content-start gap-4">
           <SectionHeader index="03" eyebrow="Aplicație" title="Modulele exploratorului LTSER" lede="La pornire, exploratorul verifică ambele servicii de date. Starea lor apare în bara laterală, iar fiecare pagină indică sursa datelor afișate." />
           <ul className="grid border-t border-border">
