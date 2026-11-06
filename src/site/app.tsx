@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useTheme } from "@/lib/theme";
 import { SiteLayout } from "./components/layout";
 import { SPRING } from "./components/primitives";
+import { PageMotionProvider, sceneForRoute } from "./components/page-motion";
 import { RouterProvider, useRouter } from "./router";
 import { documentTitle, findSiteRoute, NOT_FOUND_DESCRIPTION } from "./routes";
 import NotFoundPage from "./pages/not-found";
@@ -30,7 +31,9 @@ function Pages() {
     <SiteLayout>
       <AnimatePresence mode="wait" initial={false}>
         <motion.div key={key} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4, transition: { duration: 0.12 } }} transition={SPRING}>
-          <Page />
+          <PageMotionProvider scene={sceneForRoute(route ? key : null)}>
+            <Page />
+          </PageMotionProvider>
         </motion.div>
       </AnimatePresence>
     </SiteLayout>

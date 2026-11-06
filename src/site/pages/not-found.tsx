@@ -2,11 +2,14 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "../router";
 import { Container } from "../components/primitives";
+import { PageMotionGraphic, usePageMotionScene } from "../components/page-motion";
 
 export default function NotFoundPage() {
+  const scene = usePageMotionScene() ?? { kind: "not-found" as const };
   return (
     <Container className="grid min-h-[60vh] place-items-center py-20">
-      <div className="grid justify-items-center gap-4 text-center">
+      <div className="grid w-full justify-items-center gap-4 text-center">
+        <PageMotionGraphic scene={scene} className="w-full max-w-[560px]" />
         <p className="tabular text-[13px] text-subtle">404</p>
         <h1 className="text-[34px] leading-tight font-semibold tracking-tight">Pagina nu există</h1>
         <p className="max-w-[44ch] text-[15px] text-muted">Adresa poate fi greșită sau pagina a fost mutată. Folosiți căutarea din antet sau porniți de la pagina principală.</p>

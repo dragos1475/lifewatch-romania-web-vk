@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { motion } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageMotionGraphic, usePageMotionScene } from "./page-motion";
 
 export const SPRING = { type: "spring", stiffness: 300, damping: 30 } as const;
 
@@ -55,16 +56,22 @@ export function SectionHeader({ index, eyebrow, title, lede, aside, id }: { inde
 
 /** Page opening used by every inner page. */
 export function PageIntro({ eyebrow, title, lede, children, crumbs }: { eyebrow: string; title: ReactNode; lede?: ReactNode; children?: ReactNode; crumbs?: ReactNode }) {
+  const scene = usePageMotionScene();
   return (
     <Container className="pt-6 pb-6 sm:pt-9 sm:pb-8">
       {crumbs}
-      <div className="grid gap-5 lg:grid-cols-12 lg:items-end">
+      <div className="grid gap-5 lg:grid-cols-12 lg:items-start">
         <div className="grid min-w-0 content-start gap-2.5 lg:col-span-8">
           <Eyebrow>{eyebrow}</Eyebrow>
           <h1 className="font-display text-[34px] leading-[1.04] font-medium tracking-[-0.04em] text-balance sm:text-[44px]">{title}</h1>
           {lede ? <p className="max-w-[80ch] text-[15.5px] leading-[1.65] text-pretty text-muted">{lede}</p> : null}
         </div>
-        {children ? <div className="min-w-0 lg:col-span-4">{children}</div> : null}
+        {scene || children ? (
+          <div className="grid min-w-0 content-start gap-3 lg:col-span-4">
+            {scene ? <PageMotionGraphic scene={scene} /> : null}
+            {children ? <div className="min-w-0">{children}</div> : null}
+          </div>
+        ) : null}
       </div>
     </Container>
   );

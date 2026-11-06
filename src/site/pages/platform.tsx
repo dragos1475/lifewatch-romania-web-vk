@@ -8,8 +8,10 @@ import { explorerHref, Link } from "../router";
 import { Atlas, ATLAS_H, ATLAS_W } from "../components/atlas";
 import { CreditedPhoto } from "../components/blocks";
 import { BulletList, Container, Crumbs, ExternalLink, Figures, Reveal } from "../components/primitives";
+import { PageMotionGraphic, usePageMotionScene } from "../components/page-motion";
 
 export function PlatformPage({ platform }: { platform: Platform }) {
+  const scene = usePageMotionScene();
   const meta = LTSER_AREA_META[platform.explorerId];
   const figures = [...platform.figures, { value: String(meta.uats), label: "unități administrative în explorator" }].slice(0, 4);
   const stations = STATIONS.filter((s) => platform.stations.includes(s.slug));
@@ -38,8 +40,9 @@ export function PlatformPage({ platform }: { platform: Platform }) {
         </div>
       </Container>
 
-      <Container className="pt-4">
-        <Figures items={figures} />
+      <Container className="grid gap-3 pt-4 lg:grid-cols-12 lg:items-stretch">
+        <Figures items={figures} className="lg:col-span-8" />
+        {scene ? <PageMotionGraphic scene={scene} className="lg:col-span-4" /> : null}
       </Container>
 
       <Container className="grid gap-6 pt-6 lg:grid-cols-12 lg:gap-8">

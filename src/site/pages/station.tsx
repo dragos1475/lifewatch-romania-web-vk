@@ -9,6 +9,7 @@ import { CopyValue, CreditedPhoto } from "../components/blocks";
 import { BulletList, Container, Crumbs, Eyebrow, ExternalLink } from "../components/primitives";
 import { ModuleList } from "../components/modules";
 import { Toc } from "../components/toc";
+import { PageMotionGraphic, usePageMotionScene } from "../components/page-motion";
 
 const osm = ([lon, lat]: [number, number]) => `https://www.openstreetmap.org/?mlat=${lat.toFixed(4)}&mlon=${lon.toFixed(4)}#map=13/${lat.toFixed(4)}/${lon.toFixed(4)}`;
 
@@ -57,6 +58,7 @@ function Sidebar({ station, toc }: { station: Station; toc: { id: string; title:
 }
 
 export function StationPage({ station }: { station: Station }) {
+  const scene = usePageMotionScene();
   const index = STATIONS.findIndex((s) => s.slug === station.slug);
   const prev = STATIONS[(index - 1 + STATIONS.length) % STATIONS.length];
   const next = STATIONS[(index + 1) % STATIONS.length];
@@ -79,6 +81,8 @@ export function StationPage({ station }: { station: Station }) {
               ))}
             </ul>
           </header>
+
+          {scene ? <PageMotionGraphic scene={scene} className="max-w-[640px]" /> : null}
 
           {station.sections.map((section) => (
             <section key={section.id} aria-labelledby={section.id} className="grid gap-3">
