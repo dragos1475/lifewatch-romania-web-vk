@@ -342,3 +342,40 @@
 /* Recharts ------------------------------------------------------------------------------ */
 .recharts-wrapper:focus, .recharts-surface:focus { outline: none; }
 .recharts-brush-texts { font-family: var(--font-mono); font-size: 10px; }
+
+/* Page scenes (src/site/components/page-motion.tsx). Slow, quiet motion in the spirit of the home page
+   tree; line widths stay at screen pixels whatever the size of the box. Reduced motion stops all of it. */
+.scene-art { --scene-mist: #ffffff; }
+:root[data-theme="dark"] .scene-art { --scene-mist: #2b3447; }
+.scene-art svg * { vector-effect: non-scaling-stroke; }
+.scene-flow { animation: scene-flow 16s linear infinite; }
+@keyframes scene-flow { to { stroke-dashoffset: -60; } }
+.scene-drift { animation: scene-drift 40s ease-in-out infinite alternate; }
+@keyframes scene-drift { from { transform: translateX(calc(var(--drift, 14px) * -1)); } to { transform: translateX(var(--drift, 14px)); } }
+.scene-glide { animation: scene-glide 64s linear infinite; }
+@keyframes scene-glide { from { transform: translateX(-90px); } to { transform: translateX(500px); } }
+.scene-flap { transform-box: fill-box; transform-origin: center; animation: scene-flap 2.8s ease-in-out infinite alternate; }
+@keyframes scene-flap { to { transform: scaleY(0.5); } }
+.scene-sway { transform-box: fill-box; transform-origin: 50% 100%; animation: scene-sway 9s ease-in-out infinite alternate; }
+@keyframes scene-sway { from { transform: skewX(-2deg); } to { transform: skewX(2deg); } }
+.scene-breathe { animation: scene-breathe 7s ease-in-out infinite alternate; }
+@keyframes scene-breathe { from { opacity: 0.3; } to { opacity: 1; } }
+.scene-blink { animation: scene-blink 4s ease-in-out infinite; }
+@keyframes scene-blink { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+.scene-orbit { animation: scene-orbit 52s linear infinite; }
+@keyframes scene-orbit { to { transform: rotate(360deg); } }
+.scene-swing { animation: scene-swing 12s ease-in-out infinite alternate; }
+@keyframes scene-swing { from { transform: rotate(-28deg); } to { transform: rotate(22deg); } }
+.scene-pass { animation: scene-pass 30s linear infinite; }
+@keyframes scene-pass { 0% { transform: translateX(-190px); opacity: 0; } 10%, 90% { opacity: 1; } 100% { transform: translateX(190px); opacity: 0; } }
+.scene-sweep { animation: scene-sweep 16s ease-in-out infinite; }
+@keyframes scene-sweep { from { transform: translateX(0); } to { transform: translateX(280px); } }
+.scene-scan { animation: scene-scan 14s ease-in-out infinite alternate; }
+@keyframes scene-scan { to { transform: translateY(40px); } }
+.scene-bob { animation: scene-bob 9s ease-in-out infinite alternate; }
+@keyframes scene-bob { from { transform: translateY(-1.5px); } to { transform: translateY(1.5px); } }
+.scene-ripple { transform-box: fill-box; transform-origin: center; animation: scene-ripple 5s ease-out infinite; }
+@keyframes scene-ripple { from { transform: scale(0.5); opacity: 0.9; } to { transform: scale(1.6); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .scene-art * { animation: none !important; }
+}

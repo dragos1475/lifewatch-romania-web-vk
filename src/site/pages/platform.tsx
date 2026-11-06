@@ -40,9 +40,9 @@ export function PlatformPage({ platform }: { platform: Platform }) {
         </div>
       </Container>
 
-      <Container className="grid gap-3 pt-4 lg:grid-cols-12 lg:items-stretch">
-        <Figures items={figures} className="lg:col-span-8" />
-        {scene ? <PageMotionGraphic scene={scene} className="lg:col-span-4" /> : null}
+      <Container className="grid gap-2.5 pt-4 sm:gap-3 xl:grid-cols-12">
+        <Figures items={figures} className="xl:col-span-9 2xl:col-span-10" />
+        {scene ? <PageMotionGraphic scene={scene} className="hidden xl:col-span-3 xl:block 2xl:col-span-2" /> : null}
       </Container>
 
       <Container className="grid gap-6 pt-6 lg:grid-cols-12 lg:gap-8">
