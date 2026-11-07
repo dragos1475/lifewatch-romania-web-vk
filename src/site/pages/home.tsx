@@ -1,415 +1,514 @@
-// Home: identity, research stations, the explorer, LTSER platforms, data access and networks.
-// Editorial layout pairs research imagery with clear paths into the data and infrastructure.
-import { useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+// Home: map of the research areas, key numbers, our long-term sites, the stations, tools, how the
+// infrastructure works, the European networks, ideas, news, partners, sources and access.
+import { useMemo, useState, type ReactNode } from "react";
+import { ArrowRight, ArrowUpRight, ClipboardList, Database, Leaf, Link2, Thermometer, Trees, Waves, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { NETWORKS, RS_INDICATORS, SOCIAL_INDICATORS } from "@/lib/catalog";
-import { BREWER, rampPalette } from "@/lib/palettes";
-import { ORG, INFRASTRUCTURES } from "../content/org";
-import { STATIONS, type Station } from "../content/stations";
-import { PLATFORMS } from "../content/platforms";
-import { PROJECTS } from "../content/projects";
-import { EXPLORER_MODULES } from "../nav";
+import { CAT, CAT_ORDER, fmt, LW_POINTS, lwByKey, photoOf, sheetKey, STATION_SLUG, type Cat, type LwPoint } from "../content/lw";
 import { explorerHref, Link } from "../router";
-import { Atlas, ATLAS_H, ATLAS_W, AtlasLegend } from "../components/atlas";
-import { ArrowLink, CodeBlock, CreditedPhoto, ServiceStatus } from "../components/blocks";
-import { LivingTree } from "../components/living-tree";
-import { Container, Eyebrow, Figures, Reveal, SectionHeader, SPRING } from "../components/primitives";
+import { Band, Container, SectionHeader } from "../components/primitives";
+import { BaseSwitch, EEA, LwMap, type BaseName } from "../components/lw-map";
+import { CatShape } from "../components/lw-shapes";
+import { Card, CardBody, CardImage, CardText, CardTitle, PointTags, Tag } from "../components/lw-ui";
+import { useHelp } from "../components/help-widget";
 
-function Hero() {
+const P = LW_POINTS;
+const COUNTS = P.reduce<Record<string, number>>((a, p) => ((a[p.cat] = (a[p.cat] ?? 0) + 1), a), {});
+const OURS = P.filter((p) => p.ours && p.cat !== "statiune").sort((a, b) => (a.cat === "ltser" ? 0 : 1) - (b.cat === "ltser" ? 0 : 1));
+const DEIMS = P.filter((p) => p.deims);
+const STATIONS = P.filter((p) => p.cat === "statiune");
+const sheet = (key: string) => sheetKey(lwByKey(key)!);
+
+function MapHero() {
+  const [hidden, setHidden] = useState<Cat[]>([]);
+  const [base, setBase] = useState<BaseName>("osm");
+  const [eea, setEea] = useState<string[]>([]);
+  const [eeaMsg, setEeaMsg] = useState<string | null>(null);
+  const toggleCat = (c: Cat) => setHidden((h) => (h.includes(c) ? h.filter((x) => x !== c) : [...h, c]));
+  const toggleEea = (k: string) => {
+    setEeaMsg(null);
+    setEea((e) => (e.includes(k) ? e.filter((x) => x !== k) : [...e, k]));
+  };
   return (
-    <section className="relative overflow-hidden">
-      <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse at 15% 0%, var(--accent-soft), transparent 48%)" }} />
-      <Container className="relative grid gap-6 pt-7 pb-6 sm:gap-8 sm:pt-10 sm:pb-8 lg:grid-cols-12 lg:items-center lg:gap-10 xl:pt-12 xl:pb-10">
-        <div className="grid content-start gap-4 lg:col-span-6 xl:gap-5">
-          <p className="flex w-fit items-center gap-2.5 text-[11px] font-semibold tracking-[0.13em] text-accent uppercase">
-            <span aria-hidden className="size-1.5 rounded-full bg-brand-orange" />
-            Infrastructură națională de cercetare
-          </p>
-          <div className="grid gap-3">
-            <h1 className="max-w-[22ch] font-display text-[40px] leading-[1] font-medium tracking-[-0.045em] text-balance sm:text-[54px] xl:text-[58px] 2xl:text-[66px]">
-              Observăm natura.
-              <span className="mt-1 block italic text-accent">Înțelegem schimbarea.</span>
-            </h1>
-            <p className="max-w-[58ch] text-[15.5px] leading-[1.7] text-pretty text-muted sm:text-[16.5px]">
-              LifeWatch România conectează cercetarea de teren, monitorizarea pe termen lung și analiza datelor pentru a înțelege biodiversitatea și ecosistemele.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Button asChild variant="primary" size="lg" className="h-11 px-5 text-[14px]">
-              <a href={explorerHref()}>
-                Explorează datele
-                <ArrowUpRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" strokeWidth={1.75} />
-              </a>
-            </Button>
-            <Link to="infrastructura" className="group inline-flex h-11 items-center gap-2 rounded-lg px-4 text-[14px] font-medium text-foreground transition-colors hover:bg-accent-soft hover:text-accent">
-              Descoperă infrastructura
-              <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" strokeWidth={1.75} />
-            </Link>
-          </div>
-          <div className="flex items-center gap-3 border-t border-border pt-3 text-[12px] text-subtle">
-            <span aria-hidden className="h-px w-8 bg-brand-orange" />
-            <span>O infrastructură a {ORG.host}</span>
-          </div>
+    <section id="harta" aria-label="Harta zonelor de cercetare" className="relative scroll-mt-36 bg-[#dce8ee] dark:bg-[#0c2534]">
+      <LwMap
+        points={P}
+        hiddenCats={hidden}
+        base={base}
+        eea={eea}
+        padTopLeft={[420, 0]}
+        label="Harta stațiunilor, platformelor LTSER, siturilor LTER și stațiilor ICOS"
+        onEea={(k, ok) => setEeaMsg(ok ? null : `Stratul „${EEA[k].label}” vine de la serverele EEA și nu se poate încărca acum.`)}
+        className="h-[62vh] min-h-[420px] md:h-[min(78vh,760px)] md:min-h-[540px]"
+      />
+      <div className="z-[500] max-h-[calc(100%-40px)] overflow-auto border-b border-border bg-surface p-5 md:absolute md:top-5 md:left-5 md:w-[380px] md:rounded-xl md:border md:shadow-[0_18px_44px_rgba(14,42,59,0.22)] lg:left-[max(20px,calc((100vw-1920px)/2+48px))]">
+        <p className="text-[12.5px] font-semibold tracking-[0.1em] text-accent uppercase">LifeWatch România · Universitatea din București</p>
+        <h1 className="mt-2 font-display text-[27px] leading-[1.1] font-bold tracking-[-0.01em] text-navy dark:text-foreground">Harta zonelor de cercetare</h1>
+        <p className="mt-2 text-[15px] leading-[1.5] text-muted">Stațiunile noastre, platformele LTSER, siturile LTER și stațiile ICOS din România, pe aceeași hartă. Alegeți un punct ca să vedeți habitatele, clima și speciile observate acolo.</p>
+        <fieldset className="mt-3 grid gap-0.5">
+          <legend className="sr-only">Ce se afișează pe hartă</legend>
+          {CAT_ORDER.map((c) => (
+            <label key={c} className="flex min-h-[38px] cursor-pointer items-center gap-2.5 rounded-lg px-2 text-[14px] font-medium hover:bg-ground">
+              <input type="checkbox" checked={!hidden.includes(c)} onChange={() => toggleCat(c)} className="size-[18px] accent-[#2f7d4f]" />
+              <CatShape cat={c} />
+              {CAT[c].label}
+              <span className="tabular ml-auto text-[12px] text-subtle">{COUNTS[c] ?? 0}</span>
+            </label>
+          ))}
+        </fieldset>
+        <BaseSwitch value={base} onChange={setBase} className="mt-3" />
+        <div role="group" aria-label="Straturi tematice" className="mt-2.5 flex flex-wrap items-center gap-1.5">
+          <span className="mr-1 text-[13px] text-subtle">Straturi:</span>
+          {["n2k", "ecosys", "wet"].map((k) => (
+            <button
+              key={k}
+              type="button"
+              aria-pressed={eea.includes(k)}
+              onClick={() => toggleEea(k)}
+              className="h-8 rounded-md border border-border-strong bg-surface px-3 text-[13px] font-semibold text-navy hover:bg-surface-2 aria-pressed:border-navy aria-pressed:bg-navy aria-pressed:text-white dark:text-foreground dark:aria-pressed:border-lime dark:aria-pressed:bg-lime dark:aria-pressed:text-navy"
+            >
+              {EEA[k].short}
+            </button>
+          ))}
         </div>
+        {eeaMsg ? <p className="mt-2 text-[12.5px] text-subtle">{eeaMsg}</p> : null}
+        <div className="mt-4 flex flex-wrap gap-2.5">
+          <Button asChild variant="dark" size="site">
+            <a href={explorerHref()}>Deschide exploratorul</a>
+          </Button>
+          <Button asChild variant="outline" size="site">
+            <Link to="infrastructura">Stațiunile</Link>
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
 
-        <div className="lg:col-span-6">
-          <div className="rounded-[20px] border border-border bg-surface p-1.5 shadow-card">
-            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-2 pt-0.5 pb-1.5">
-              <p className="text-[12.5px] font-medium">Stații de cercetare și platforme LTSER</p>
-              <ServiceStatus className="border-0 bg-transparent px-0 py-0 shadow-none backdrop-blur-none" />
-            </div>
-            <div className="grid gap-1.5 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-              <LivingTree className="h-[170px] sm:h-auto" />
-              <div className="grid content-start gap-2">
-                <div className="relative overflow-hidden rounded-[14px] border border-border bg-surface-2/60" style={{ aspectRatio: `${ATLAS_W} / ${ATLAS_H}` }}>
-                  <div aria-hidden className="dot-grid absolute inset-0 opacity-70" />
-                  <Atlas className="absolute inset-0" showNetworks={false} />
-                </div>
-                <div className="px-1.5 pb-1">
-                  <AtlasLegend showNetworks={false} />
-                </div>
-              </div>
-            </div>
+function Stats() {
+  const n2k = new Set(P.flatMap((p) => (p.n2k ?? []).map((s) => s.code))).size;
+  const obs = OURS.reduce((a, p) => a + (p.inat?.obs ?? 0), 0);
+  const stats: [number, string][] = [
+    [STATIONS.length, "stațiuni de cercetare ale Universității din București"],
+    [DEIMS.length, "situri românești în registrul DEIMS-SDR"],
+    [OURS.length, "situri pe termen lung operate de echipele UB"],
+    [COUNTS.icos ?? 0, "stații de flux ecosistemic ICOS"],
+    [n2k, "situri Natura 2000 care se suprapun cu zonele noastre"],
+    [obs, "observații iNaturalist în siturile noastre"],
+  ];
+  return (
+    <section aria-label="Cifre cheie" className="bg-ground">
+      <Container className="grid grid-cols-2 gap-5 py-8 sm:grid-cols-3 xl:grid-cols-6">
+        {stats.map(([n, label]) => (
+          <div key={label}>
+            <b className="block font-display text-[32px] leading-[1.1] font-extrabold text-navy sm:text-[40px] dark:text-foreground">{fmt(n)}</b>
+            <span className="text-[14px] text-muted">{label}</span>
           </div>
-        </div>
+        ))}
       </Container>
     </section>
   );
 }
 
-function StationCard({ station }: { station: Station }) {
+export function SiteCard({ p, abstract }: { p: LwPoint; abstract?: boolean }) {
+  const facts = [p.established ? `Din ${p.established}` : null, p.area_ha ? `${fmt(p.area_ha)} ha` : null, p.inat?.species ? `${fmt(p.inat.species)} specii pe iNaturalist` : null].filter(Boolean).join(" · ");
   return (
-    <Link to={`infrastructura/${station.slug}`} className="group grid grid-cols-[104px_minmax(0,1fr)] gap-3 overflow-hidden rounded-[18px] border border-border bg-surface p-2 shadow-card transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-accent/35 hover:shadow-float sm:flex sm:flex-col sm:gap-0 sm:rounded-[22px]">
-      <CreditedPhoto photo={station.photo} alt={`${station.photo.location}, imagine pentru ${station.name}`} sizes="(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 104px" credit="label" creditClassName="hidden sm:block" className="min-h-[104px] rounded-[10px] sm:aspect-[16/9] sm:min-h-0 sm:rounded-[14px]" />
-      <div className="grid content-start gap-1 py-1 pr-1 sm:gap-1.5 sm:px-2.5 sm:pt-3 sm:pb-2.5">
-        <p className="text-[10.5px] font-medium tracking-[0.08em] text-subtle uppercase sm:text-[11px]">Din {station.founded} · {station.county}</p>
-        <h3 className="flex items-start gap-2 font-display text-[17px] leading-tight font-medium tracking-[-0.025em] sm:text-[20px]">
-          {station.name}
-          <ArrowRight className="mt-1 size-3.5 shrink-0 text-subtle transition-transform group-hover:translate-x-0.5 group-hover:text-accent" strokeWidth={1.75} />
-        </h3>
-        <p className="line-clamp-3 text-[13px] leading-[1.6] text-muted">{station.summary}</p>
-        <span className="hidden items-center gap-1.5 text-[12px] font-semibold text-accent sm:inline-flex">
-          Explorează stația
-          <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" strokeWidth={1.75} />
+    <Card>
+      <CardImage image={photoOf(p)} name={p.ro} />
+      <CardBody>
+        <PointTags p={p} />
+        <CardTitle>{p.ro}</CardTitle>
+        {abstract ? <p className="text-[13px] text-subtle">{p.fullName}</p> : null}
+        {abstract && p.abstract ? <CardText>{p.abstract.length > 220 ? `${p.abstract.slice(0, 220)}…` : p.abstract}</CardText> : facts ? <CardText>{facts}</CardText> : null}
+        <div className="mt-auto flex flex-wrap gap-2 pt-1">
+          <Button asChild variant="dark" size="site-sm">
+            <Link to={sheetKey(p)}>Fișa sitului</Link>
+          </Button>
+          {p.deims ? (
+            <Button asChild variant="outline" size="site-sm">
+              <a href={p.deims} target="_blank" rel="noreferrer">
+                DEIMS <ArrowUpRight />
+              </a>
+            </Button>
+          ) : null}
+        </div>
+      </CardBody>
+    </Card>
+  );
+}
+
+export function StationCard({ p }: { p: LwPoint }) {
+  return (
+    <Link to={`infrastructura/${STATION_SLUG[p.id]}`} className="group flex flex-col overflow-hidden rounded-xl border border-border bg-surface transition-[border-color,transform] duration-150 hover:-translate-y-0.5 hover:border-accent">
+      <CardImage image={photoOf(p)} name={p.short ?? p.ro} />
+      <CardBody>
+        <span className="text-[13px] font-bold text-[#2f7d4f] dark:text-accent">
+          Din {p.founded} · {p.setting}
         </span>
-      </div>
+        <CardTitle>{p.short}</CardTitle>
+        <CardText>{p.role}</CardText>
+        <span className="mt-auto inline-flex items-center gap-1 text-[14px] font-semibold text-[#2f7d4f] dark:text-accent">
+          Detalii <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" strokeWidth={2} />
+        </span>
+      </CardBody>
     </Link>
   );
 }
 
-function Stations() {
-  return (
-    <Container className="grid gap-4 py-8 sm:gap-5 sm:py-10">
-      <SectionHeader
-        index="01"
-        eyebrow="Infrastructură"
-        title="Stații de cercetare"
-        lede="Patru stații de teren ale Universității din București: Sinaia (1922), Brăila (1955), Orșova (1964) și Sfântu Gheorghe (2002)."
-        aside={<ArrowLink to="infrastructura">Toate stațiile</ArrowLink>}
-      />
-      <Reveal className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {STATIONS.map((s) => (
-          <StationCard key={s.slug} station={s} />
-        ))}
-      </Reveal>
-    </Container>
-  );
-}
+type Status = "live" | "hub" | "plan";
+const STATUS: Record<Status, [string, string]> = {
+  live: ["Disponibil aici", "bg-[#E2F2E7] text-[#1F5A37] dark:bg-accent-soft dark:text-accent"],
+  hub: ["Pe Hub", "bg-[#E3EEF4] text-[#164E66] dark:bg-[#1f6e8c]/25 dark:text-[#8fc1d6]"],
+  plan: ["Planificat", "bg-[#F6EBDD] text-[#7A4508] dark:bg-warning-soft dark:text-warning"],
+};
+const TOOLS: { icon: LucideIcon; title: string; body: string; status: Status; to?: string; hash?: string; href?: string; cta: string }[] = [
+  { icon: Trees, title: "Exploratorul de habitate", body: "Habitate EUNIS din DEIMS, situri Natura 2000 care se suprapun și straturile EEA de ecosisteme, CORINE, apă și umiditate, zone ripariene.", status: "live", to: sheet("s-d4854af8"), cta: "Deschide pentru Insulele Brăilei" },
+  { icon: Thermometer, title: "Tablou climatic", body: "Climatologie DEIMS 1991–2020 comparată cu NASA POWER, plus temperaturi minime, maxime și radiație solară.", status: "live", to: sheet("s-sinaia"), cta: "Deschide pentru Sinaia" },
+  { icon: Leaf, title: "Biodiversitate iNaturalist", body: "Specii observate, grupuri taxonomice, statut de conservare și observații recente, în limitele fiecărui sit.", status: "live", to: sheet("s-cdf8ba96"), cta: "Deschide pentru Delta Dunării" },
+  { icon: Database, title: "Ocurențe GBIF", body: "Numărul de înregistrări din GBIF pentru fiecare sit, cu legătură directă la căutarea pe hartă.", status: "live", to: sheet("s-a6af4965"), cta: "Deschide pentru Neajlov" },
+  { icon: Waves, title: "Stații de flux ICOS", body: "Ce măsoară stațiile de la Brăila, Comana și Enisala și unde se găsesc datele în ICOS Carbon Portal.", status: "live", to: "situri", hash: "icos", cta: "Vezi stațiile" },
+  { icon: Link2, title: "Fișe DEIMS și API", body: "Metadate eLTER pentru fiecare sit, cu exemple de cereri API pentru DEIMS, iNaturalist, GBIF și NASA POWER.", status: "live", to: sheet("s-383aab7b"), cta: "Deschide pentru ICOS Brăila" },
+  { icon: Thermometer, title: "Climate Dashboard ANM", body: "Date observaționale și scenarii climatice pe grila bazinului Dunării, dezvoltate cu Administrația Națională de Meteorologie.", status: "hub", href: "https://carmine.geo.meteoromania.ro/restore4life-dss/", cta: "Deschide pe Hub" },
+  { icon: Database, title: "Catalogul de date Restore4Life", body: "Catalog GeoNetwork și servicii WMS pentru siturile pilot din bazinul Dunării.", status: "hub", href: "https://r4l-data.unibuc.ro/catalog/srv/dut/catalog.search", cta: "Deschide catalogul" },
+  { icon: Leaf, title: "eBird, MINKA și CrowdWater", body: "Știință cetățenească pentru păsări, biodiversitate și hidrologie, integrate în tablourile de sit ale Hub-ului.", status: "hub", href: "https://wetlandrestorationhub.eu/", cta: "Deschide Hub-ul" },
+  { icon: ClipboardList, title: "Raportare pentru Planul Național de Restaurare", body: "Fișe automate pe sit, cu corespondențe EUNIS și Anexa I spre grupurile de habitate din Regulamentul de restaurare a naturii.", status: "plan", to: "", hash: "idei", cta: "Vezi ideea" },
+];
 
-function ModulePreview({ id }: { id: string }) {
-  if (id === "rs") {
-    // Same colour ramps as the explorer's map legends (src/lib/palettes.ts).
-    const ramps: Record<string, readonly string[]> = { ssm: rampPalette(BREWER.RdYlBu10, 11), ndvi: BREWER.RdYlGn11.slice(1), fapar: BREWER.RdYlGn11.slice(1) };
-    return (
-      <div className="grid gap-3">
-        {RS_INDICATORS.map((r) => (
-          <div key={r.id} className="grid gap-1.5">
-            <div className="flex items-baseline justify-between text-[12px]">
-              <span className="font-medium text-white">{r.short}</span>
-              <span className="text-white/65">{r.ro}</span>
-            </div>
-            <div className="h-2 rounded-full" style={{ background: `linear-gradient(90deg, ${ramps[r.id].join(", ")})` }} />
-          </div>
-        ))}
-        <p className="pt-1 text-[12px] text-white/65">Hărți lunare, serii pe punct și export GeoTIFF.</p>
+function ToolCard({ t }: { t: (typeof TOOLS)[number] }) {
+  const cls = "group flex flex-col rounded-xl border border-border bg-surface transition-[border-color,transform] duration-150 hover:-translate-y-0.5 hover:border-accent";
+  const body = (
+    <CardBody>
+      <div className="flex items-center justify-between">
+        <span className="grid size-11 place-items-center rounded-[10px] bg-surface-2 text-[#2f7d4f] dark:text-accent">
+          <t.icon className="size-[22px]" strokeWidth={1.8} />
+        </span>
+        <span className={cn("rounded-md px-2 py-0.5 text-[12px] font-bold", STATUS[t.status][1])}>{STATUS[t.status][0]}</span>
       </div>
-    );
-  }
-  if (id === "net") {
-    const counts: Record<string, number> = { ws: 20, ec: 5, cu: 10, ra: 5, co: 5, bu: 1 };
-    const max = 20;
-    return (
-      <ul className="grid gap-2">
-        {NETWORKS.map((n) => (
-          <li key={n.id} className="grid grid-cols-[minmax(0,1fr)_120px_28px] items-center gap-3 text-[12px]">
-            <span className="truncate text-white/80">{n.ro}</span>
-            <span className="h-1.5 overflow-hidden rounded-full bg-white/10">
-              <motion.span className="block h-full rounded-full" style={{ background: n.color }} initial={{ width: 0 }} animate={{ width: `${(counts[n.id] / max) * 100}%` }} transition={SPRING} />
-            </span>
-            <span className="tabular text-right text-white">{counts[n.id]}</span>
-          </li>
-        ))}
-      </ul>
-    );
-  }
-  if (id === "platform") {
-    return (
-      <div className="grid gap-2 font-mono text-[12px] leading-relaxed">
-        <p className="text-white/65">GET /stations/1/measurements</p>
-        <p className="text-white/80">
-          ?variables=<span className="text-brand-sand">air_temperature</span>
-        </p>
-        <p className="text-white/80">
-          &amp;since=<span className="text-brand-sand">2026-10-01T00:00:00Z</span>
-        </p>
-        <p className="text-white/80">
-          &amp;until=<span className="text-brand-sand">2026-10-02T00:00:00Z</span>
-        </p>
-        <p className="pt-1 font-sans text-white/65">25 de stații, ferestre de cel mult 7 zile, până la 50.000 de rânduri.</p>
-      </div>
-    );
-  }
-  const years = SOCIAL_INDICATORS.flatMap((s) => s.years);
-  const lo = Math.min(...years);
-  const hi = Math.max(...years);
-  return (
-    <div className="grid gap-3">
-      {SOCIAL_INDICATORS.map((s) => {
-        const a = Math.min(...s.years);
-        const b = Math.max(...s.years);
-        return (
-          <div key={s.id} className="grid gap-1.5">
-            <div className="flex justify-between text-[12px]">
-              <span className="text-white">{s.ro}</span>
-              <span className="tabular text-white/65">{a}–{b}</span>
-            </div>
-            <div className="relative h-1.5 rounded-full bg-white/10">
-              <span className="absolute inset-y-0 rounded-full bg-brand-green" style={{ left: `${((a - lo) / (hi - lo)) * 100}%`, right: `${((hi - b) / (hi - lo)) * 100}%` }} />
-            </div>
-          </div>
-        );
-      })}
-      <p className="pt-1 text-[12px] text-white/65">208 unități administrative din cele șase zone LTSER.</p>
-    </div>
+      <CardTitle>{t.title}</CardTitle>
+      <CardText>{t.body}</CardText>
+      <span className="mt-auto text-[14px] font-semibold text-[#2f7d4f] dark:text-accent">
+        {t.cta} {t.href ? "↗" : "→"}
+      </span>
+    </CardBody>
+  );
+  return t.href ? (
+    <a href={t.href} target="_blank" rel="noreferrer" className={cls}>
+      {body}
+    </a>
+  ) : (
+    <Link to={t.to ?? ""} hash={t.hash} className={cls}>
+      {body}
+    </Link>
   );
 }
 
-function Explorer() {
-  const [active, setActive] = useState(EXPLORER_MODULES[0].id);
-  const current = EXPLORER_MODULES.find((m) => m.id === active)!;
-  return (
-    <Container className="py-2 sm:py-4">
-      <Reveal>
-        <div className="relative isolate overflow-hidden rounded-[28px] border border-white/10 bg-panel text-panel-foreground shadow-float">
-          <div aria-hidden className="pointer-events-none absolute inset-0 opacity-35" style={{ background: "radial-gradient(ellipse at 90% 0%, rgb(255 255 255 / 0.12), transparent 42%)" }} />
-          <div className="relative grid gap-6 p-5 sm:p-7 lg:grid-cols-12 lg:gap-10">
-            <div className="grid content-start gap-3.5 lg:col-span-5">
-              <div className="flex items-baseline gap-3">
-                <span className="tabular text-[12px] text-white/50">02</span>
-                <Eyebrow className="text-brand-sand">Date</Eyebrow>
-              </div>
-              <h2 className="font-display text-[30px] leading-[1.08] font-medium tracking-[-0.03em] sm:text-[36px]">Exploratorul LTSER</h2>
-              <p className="text-[15px] leading-[1.65] text-white/70">
-                Aplicație web pentru consultarea datelor: teledetecție, rețele de stații, măsurători brute și indicatori sociali pentru cele șase platforme LTSER. Datele provin din serviciile API ale infrastructurii.
-              </p>
-              <div className="flex flex-wrap gap-2.5">
-                <Button asChild size="lg" className="h-10 border-transparent bg-white px-5 text-[14px] text-[#1d3567] hover:border-transparent hover:bg-white/90">
-                  <a href={explorerHref(current.path)}>
-                    Deschide {current.title.toLowerCase()}
-                    <ArrowUpRight strokeWidth={1.75} />
-                  </a>
-                </Button>
-                <Link to="date" className="inline-flex h-10 items-center gap-1.5 rounded-lg px-4 text-[14px] font-medium text-white/80 transition-colors hover:bg-white/5 hover:text-white">
-                  Catalogul de date
-                  <ArrowRight className="size-3.5" strokeWidth={1.75} />
-                </Link>
-              </div>
-            </div>
+const ARCH = [
+  { step: "01 · Teren", title: "Stațiuni și situri", body: "Stațiuni de cercetare, platforme LTSER, stații de flux ICOS și stații meteo eLTER." },
+  { step: "02 · Servicii centrale", title: "Centrul de date Sinaia", body: "Calcul de înaltă performanță, cloud privat și laboratoare virtuale conectate la LifeWatch ERIC." },
+  { step: "03 · Registre europene", title: "DEIMS, ICOS, GBIF", body: "Metadatele siturilor stau în DEIMS-SDR, fluxurile în ICOS Carbon Portal, ocurențele în GBIF." },
+];
 
-            <div className="grid content-start gap-3 lg:col-span-7">
-              <div role="tablist" aria-label="Module" className="grid grid-cols-2 gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-1 sm:grid-cols-4">
-                {EXPLORER_MODULES.map((m) => {
-                  const on = m.id === active;
-                  return (
-                    <button
-                      key={m.id}
-                      type="button"
-                      role="tab"
-                      aria-selected={on}
-                      onClick={() => setActive(m.id)}
-                      className={cn("relative flex h-9 items-center justify-center gap-1.5 rounded-lg text-[13px] transition-colors", on ? "text-white" : "text-white/65 hover:text-white")}
-                    >
-                      {on ? <motion.span layoutId="home-module" transition={SPRING} className="absolute inset-0 rounded-lg bg-white/10 ring-1 ring-white/10" /> : null}
-                      <m.icon className="relative size-3.5" strokeWidth={1.75} />
-                      <span className="relative">{m.title}</span>
-                    </button>
-                  );
-                })}
-              </div>
-              <div role="tabpanel" className="relative min-h-[212px] overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.div key={active} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={SPRING} className="grid gap-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="grid gap-1">
-                        <p className="text-[15px] font-medium">{current.title}</p>
-                        <p className="max-w-[52ch] text-[13px] leading-relaxed text-white/65">{current.body}</p>
-                      </div>
-                      <a href={explorerHref(current.path)} aria-label={`Deschide ${current.title}`} className="grid size-8 shrink-0 place-items-center rounded-lg border border-white/10 text-white/80 transition-colors hover:bg-white/10 hover:text-white">
-                        <ArrowUpRight className="size-3.5" strokeWidth={1.75} />
-                      </a>
-                    </div>
-                    <ModulePreview id={active} />
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Reveal>
-    </Container>
-  );
-}
+const IDEAS: [string, string][] = [
+  ["Fluxuri ICOS în timp real", "Grafice zilnice de CO₂, evapotranspirație și energie pentru Brăila, Comana și Enisala, citite din ICOS Carbon Portal imediat ce datele sunt publicate."],
+  ["Fișă NRR pentru fiecare sit", "Raport generat automat cu habitatele Anexei I, presiunile și măsurile potrivite, gata de folosit în Planul Național de Restaurare."],
+  ["Actualizare automată nocturnă", "Un flux GitHub Actions reface instantaneul din DEIMS, iNaturalist, GBIF și NASA POWER în fiecare noapte."],
+  ["BioBlitz LifeWatch România", "Câte un proiect iNaturalist pentru fiecare stațiune, cu întâlniri anuale de inventariere împreună cu studenții și comunitățile locale."],
+  ["Fenocamere și senzori live", "Imagini zilnice de vegetație și citiri de la stațiile meteo, afișate direct pe fișa fiecărei stațiuni."],
+  ["Calendar de acces transnațional", "Rezervarea locurilor de cazare, a navelor și a laboratoarelor, legată de apelurile eLTER pentru acces la situri."],
+  ["Dunărea, de la Orșova la Sfântu Gheorghe", "O poveste pe hartă care urmărește fluviul prin cele patru zone ale noastre, cu date, fotografii și rezultate de cercetare."],
+  ["Variabile esențiale de biodiversitate", "Indicatori EBV calculați pe sit din iNaturalist, GBIF și teledetecție, comparabili cu restul rețelei eLTER."],
+  ["Catalog de seturi de date cu DOI", "Publicarea seturilor de date ale stațiunilor în Zenodo sau B2SHARE, cu metadate preluate automat din DEIMS."],
+];
 
-function Platforms() {
-  return (
-    <Container className="grid gap-4 py-8 sm:gap-5 sm:py-10">
-      <SectionHeader
-        index="03"
-        eyebrow="Platforme LTSER"
-        title="Platforme LTSER"
-        lede="Platforme de cercetare socio-ecologică pe termen lung documentate în explorator."
-        aside={<ArrowLink to="platforme">Despre platforme</ArrowLink>}
-      />
-      <Reveal className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
-        {PLATFORMS.map((p) => (
-          <Link key={p.slug} to={`platforme/${p.slug}`} className="group grid grid-cols-[104px_minmax(0,1fr)] gap-3 overflow-hidden rounded-[18px] border border-border bg-surface p-2 shadow-card transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-accent/35 hover:shadow-float sm:block sm:rounded-[22px] sm:p-0">
-            <div className="relative min-h-[84px] overflow-hidden rounded-[10px] sm:aspect-[2/1] sm:min-h-0 sm:rounded-none">
-              <CreditedPhoto photo={p.photo} alt={`${p.name}, ${p.photo.location}`} sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 104px" credit="label" creditClassName="hidden sm:block" className="absolute inset-0" />
-              <div aria-hidden className="pointer-events-none absolute inset-0 hidden bg-gradient-to-t from-zinc-950/85 via-zinc-950/15 to-transparent sm:block" />
-              <span aria-hidden className="absolute top-3 right-3 hidden size-9 place-items-center rounded-full border border-white/25 bg-zinc-950/20 text-white backdrop-blur transition-colors group-hover:bg-white group-hover:text-foreground sm:grid">
-                <ArrowUpRight className="size-4" strokeWidth={1.75} />
-              </span>
-              <div className="absolute inset-x-0 bottom-0 hidden gap-1 p-5 pr-12 text-white sm:grid">
-                <p className="text-[10px] font-semibold tracking-[0.14em] text-white/75 uppercase">{p.kind}</p>
-                <h3 className="font-display text-[22px] leading-[1.12] font-medium tracking-[-0.025em] lg:text-[24px]">{p.name}</h3>
-              </div>
-            </div>
-            <div className="grid content-center gap-0.5 py-1 pr-1 sm:hidden">
-              <p className="text-[10px] font-semibold tracking-[0.12em] text-subtle uppercase">{p.kind}</p>
-              <h3 className="font-display text-[17px] leading-tight font-medium tracking-[-0.025em]">{p.name}</h3>
-              <p className="text-[12px] text-muted">{p.region} · <span className="tabular font-medium text-accent">{p.figures[0].value}</span></p>
-            </div>
-            <div className="hidden items-center justify-between gap-3 border-t border-border px-5 py-2.5 sm:flex">
-              <span className="truncate text-[12px] text-muted">{p.region}</span>
-              <span className="tabular shrink-0 text-[12px] font-medium text-accent">{p.figures[0].value}</span>
-            </div>
-          </Link>
-        ))}
-      </Reveal>
-    </Container>
-  );
-}
+const NEWS = [
+  { meta: "16 februarie 2024 · eLTER", title: "eLTER despre platformele eLT(S)ER-România și LifeWatch-România", body: "Articolul eLTER prezintă consolidarea stațiunilor Universității din București de la Orșova, Brăila, Sfântu Gheorghe și Sinaia.", href: "https://elter-ri.eu/news/breaking-new-ground-university-bucharests-eltser-romania-and-lifewatch-romania-platforms-project", cta: "Citește pe elter-ri.eu" },
+  { meta: "Septembrie 2026 · DEIMS-SDR", title: "Trei stații de flux ICOS, înregistrate în DEIMS", body: "Stațiile de la Brăila, Comana și Enisala, operate de RCSES, au acum fișe proprii în registrul european al siturilor.", to: "situri", hash: "icos", cta: "Vezi stațiile ICOS" },
+  { meta: "Universitatea din București", title: "LifeWatch România, conferința de final a proiectului", body: "Proiectul de infrastructură s-a încheiat, iar stațiunile și centrul de date intră în etapa de operare.", href: "https://unibuc.ro/lifewatch-romania-infrastructura-pentru-cercetare-un-proiect-incheiat-un-nou-inceput-conferinta-de-final-la-universitatea-din-bucuresti/", cta: "Citește pe unibuc.ro" },
+];
 
-function DataAndNetwork() {
-  // Backslash-newline inside double quotes is a line continuation, so the command runs as shown.
-  const example = `curl "https://<domeniu>/lifewatch-api\\
-/stations/1/measurements\\
-?variables=air_temperature\\
-&since=2026-10-01T00:00:00Z\\
-&until=2026-10-02T00:00:00Z"`;
-  const links = [
-    ["date/api", "Referința API", "Rute, parametri și exemple"],
-    ["date/documentatie", "Documentație", "Fus orar, pas de timp, limite, formate"],
-    ["date", "Catalog de date", "Seturile de date, pe teme"],
-  ];
-  return (
-    <Container className="grid gap-8 pt-2 pb-8 sm:pb-10 lg:grid-cols-2 lg:gap-12">
-      <section className="grid content-start gap-4">
-        <SectionHeader index="04" eyebrow="Date" title="Acces la date" lede="Măsurătorile brute ale celor 25 de stații, prin API-ul LifeWatch: cereri HTTP GET, răspunsuri JSON." />
-        <Reveal className="grid gap-4 xl:grid-cols-2">
-          <ul className="grid content-start border-t border-border">
-            {links.map(([to, title, body]) => (
-              <li key={to} className="border-b border-border">
-                <Link to={to} className="group flex items-center justify-between gap-4 py-2.5">
-                  <span className="grid">
-                    <span className="text-[14px] font-medium">{title}</span>
-                    <span className="text-[13px] text-muted">{body}</span>
-                  </span>
-                  <ArrowRight className="size-4 shrink-0 text-subtle transition-transform group-hover:translate-x-0.5 group-hover:text-accent" strokeWidth={1.75} />
-                </Link>
-              </li>
-            ))}
-          </ul>
-          <CodeBlock code={example} label="Temperatura aerului, 24 de ore" />
-        </Reveal>
-      </section>
-      <section className="grid content-start gap-4">
-        <SectionHeader index="05" eyebrow="Rețea" title="Infrastructuri europene de cercetare" aside={<ArrowLink to="retea">Rețea și comunitate</ArrowLink>} />
-        <Reveal className="grid gap-4">
-          <ul className="grid border-t border-border">
-            {INFRASTRUCTURES.map((i) => (
-              <li key={i.id} className="border-b border-border">
-                <a href={i.url} target="_blank" rel="noreferrer" className="group grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-4 gap-y-0.5 py-2.5 sm:grid-cols-[150px_minmax(0,1fr)_auto]">
-                  <span className="col-start-1 row-start-1 text-[14px] font-semibold tracking-tight">{i.name}</span>
-                  <span className="col-start-1 row-start-2 text-[13.5px] leading-relaxed text-muted sm:col-start-2 sm:row-start-1">{i.role}</span>
-                  <ArrowUpRight className="col-start-2 row-start-1 size-3.5 self-center sm:col-start-3 text-subtle transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-accent" strokeWidth={1.75} />
-                </a>
-              </li>
-            ))}
-          </ul>
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[13px]">
-            <span className="mr-1 text-subtle">Proiecte europene</span>
-            {PROJECTS.map((p) => (
-              <a key={p.acronym} href={p.url} target="_blank" rel="noreferrer" className="tabular rounded-md border border-border px-2 py-0.5 text-muted transition-colors hover:border-border-strong hover:text-foreground">
-                {p.acronym}
-              </a>
-            ))}
-            <ArrowLink to="proiecte" className="ml-1 text-[13px]">Toate</ArrowLink>
-          </div>
-        </Reveal>
-      </section>
-    </Container>
-  );
+const PARTNERS = [
+  { name: "LifeWatch ERIC", body: "Infrastructură de e-Știință pentru cercetarea biodiversității și a ecosistemelor.", href: "https://www.lifewatch.eu/" },
+  { name: "eLTER RI", body: "Cercetare ecologică pe termen lung în situri și platforme socio-ecologice.", href: "https://elter-ri.eu/" },
+  { name: "ICOS", body: "Observarea gazelor cu efect de seră și a fluxurilor de carbon.", href: "https://www.icos-cp.eu/" },
+  { name: "DANUBIUS-RI", body: "Cercetarea sistemelor fluviu–mare, de la bazin la coastă.", href: "https://www.danubius-ri.eu/" },
+];
+const PROJECTS: { name: string; href?: string }[] = [
+  { name: "Restore4Life", href: "https://www.restore4life.eu/" },
+  { name: "Wetland Restoration Hub", href: "https://wetlandrestorationhub.eu/" },
+  { name: "MARCO-BOLO" },
+  { name: "RESTORE4Cs" },
+  { name: "BioAgora" },
+  { name: "SELINA" },
+  { name: "CROSSEU" },
+  { name: "RIVER-EYE" },
+  { name: "EMPOWERALL" },
+];
+
+function Grid({ cols, children, className }: { cols: 2 | 3 | 4; children: ReactNode; className?: string }) {
+  return <div className={cn("mt-8 grid gap-5 sm:gap-6", cols === 3 && "md:grid-cols-2 xl:grid-cols-3", cols === 4 && "sm:grid-cols-2 xl:grid-cols-4", cols === 2 && "lg:grid-cols-2", className)}>{children}</div>;
 }
 
 export default function HomePage() {
+  const { openHelp } = useHelp();
+  const icos = useMemo(() => P.filter((p) => p.cat === "icos" || p.cat === "icos-cat"), []);
+  const lterCount = P.filter((p) => p.cat === "ltser" || p.cat === "lter").length;
   return (
     <>
-      <Hero />
-      <Container className="pb-4 sm:pb-6">
-        <Figures
-          items={[
-            { value: "1922", label: "înființarea stațiunii Sinaia" },
-            { value: "4", label: "stații de cercetare" },
-            { value: "6", label: "platforme LTSER în explorator" },
-            { value: "46", label: "amplasamente în șase rețele" },
-          ]}
-        />
-      </Container>
-      <Stations />
-      <Explorer />
-      <Platforms />
-      <DataAndNetwork />
-      <Container>
-        <Reveal>
-          <div className="flex flex-col gap-4 rounded-[22px] border border-accent/15 bg-accent-soft p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-            <div className="grid max-w-[62ch] gap-2">
-              <Eyebrow>Colaborare și cercetare</Eyebrow>
-              <h2 className="font-display text-[24px] leading-tight font-medium tracking-[-0.03em] text-balance sm:text-[28px]">Conectăm datele, oamenii și locurile care protejează natura.</h2>
-              <p className="text-[14px] leading-relaxed text-muted">Află cum infrastructura LifeWatch România poate susține cercetarea și colaborările interdisciplinare.</p>
-            </div>
-            <Button asChild variant="primary" size="lg" className="h-11 shrink-0 px-5 text-[14px]">
-              <Link to="contact">
-                Contactează echipa
-                <ArrowRight strokeWidth={1.75} />
-              </Link>
+      <MapHero />
+      <Stats />
+
+      <Band id="noastre">
+        <Container>
+          <SectionHeader eyebrow="Cercetare ecologică pe termen lung" title="Siturile noastre de cercetare pe termen lung" lede="Platformele LTSER și stațiile de flux operate de echipele Universității din București. Fiecare are o fișă în registrul european DEIMS-SDR și o fișă de date pe acest site." />
+          <Grid cols={4}>
+            {OURS.map((p) => (
+              <SiteCard key={p.key} p={p} />
+            ))}
+          </Grid>
+          <div className="mt-7">
+            <Button asChild variant="outline" size="site">
+              <Link to="situri" hash="retea">Toată rețeaua LTER România</Link>
             </Button>
           </div>
-        </Reveal>
-      </Container>
+        </Container>
+      </Band>
+
+      <Band tone="ground" id="statiuni-preview">
+        <Container>
+          <SectionHeader eyebrow="Infrastructura din teren" title="Patru stațiuni, de la Bucegi la Marea Neagră" lede="Stațiunile Universității din București adună peste un secol de observații. Prin proiectul LifeWatch România au primit laboratoare noi, iar Sinaia găzduiește centrul de date al infrastructurii." />
+          <Grid cols={4}>
+            {STATIONS.map((p) => (
+              <StationCard key={p.key} p={p} />
+            ))}
+          </Grid>
+        </Container>
+      </Band>
+
+      <Band id="instrumente">
+        <Container>
+          <SectionHeader eyebrow="Date și instrumente" title="Instrumentele Wetland Restoration Hub, aduse pentru România" lede="Fișele siturilor folosesc aceleași surse ca Wetland Restoration Hub, aplicate fiecărui sit din România. Instrumentele marcate „Pe Hub” se deschid în platforma Restore4Life." />
+          <Grid cols={4}>
+            {TOOLS.map((t) => (
+              <ToolCard key={t.title} t={t} />
+            ))}
+          </Grid>
+        </Container>
+      </Band>
+
+      <Band tone="dark" id="arhitectura">
+        <Container>
+          <p className="text-[12.5px] font-semibold tracking-[0.1em] text-lime uppercase">Cum funcționează</p>
+          <h2 className="mt-2 font-display text-[26px] leading-[1.15] font-bold sm:text-[32px] lg:text-[36px]">De la senzorul din teren la fișa de date</h2>
+          <p className="mt-2 max-w-[780px] text-[15.5px] leading-[1.65] text-[#CFDCE2] sm:text-[17px]">Rețeaua fizică produce datele, serviciile centrale de la Sinaia le procesează, iar portalul le publică împreună cu datele europene despre același loc.</p>
+          <Grid cols={4}>
+            {ARCH.map((a) => (
+              <div key={a.step} className="grid content-start gap-2.5 rounded-xl border border-[#2C5A6E] bg-navy-2 p-[22px]">
+                <span className="text-[12.5px] font-semibold tracking-[0.1em] text-lime uppercase">{a.step}</span>
+                <h3 className="font-display text-[20px] font-bold">{a.title}</h3>
+                <p className="text-[15px] leading-[1.55] text-[#CFDCE2]">{a.body}</p>
+              </div>
+            ))}
+            <a href={explorerHref()} className="grid content-start gap-2.5 rounded-xl bg-lime p-[22px] text-navy transition-colors hover:bg-[#cdee98]">
+              <span className="text-[12.5px] font-semibold tracking-[0.1em] uppercase">04 · Portal</span>
+              <h3 className="font-display text-[20px] font-bold">Exploratorul și fișele de sit</h3>
+              <p className="text-[15px] leading-[1.55]">O fișă pentru fiecare loc, cu habitate, climă, biodiversitate și legături spre date, plus exploratorul LTSER pentru serii de măsurători.</p>
+            </a>
+          </Grid>
+        </Container>
+      </Band>
+
+      <Band id="icos-elter">
+        <Container>
+          <SectionHeader eyebrow="Infrastructuri europene" title="LifeWatch, eLTER și ICOS, în același loc" lede="Aceleași situri servesc trei infrastructuri europene. eLTER descrie locul și ce se măsoară acolo, ICOS măsoară schimburile de carbon, apă și energie, iar LifeWatch oferă serviciile de date pentru biodiversitate." />
+          <Grid cols={3}>
+            {[
+              { t: "eLTER RI", b: `Rețeaua LTER România are ${DEIMS.length} fișe în DEIMS-SDR, dintre care ${lterCount} platforme și situri LTER. Fiecare are un cod de sit european, de exemplu LTER_EU_RO_006 pentru Insulele Brăilei.`, href: "https://deims.org/networks/4260f964-0ac4-4406-8adc-5afc06e31779", cta: "LTER România în DEIMS" },
+              { t: "ICOS", b: "Trei stații de flux ecosistemic operate de RCSES măsoară CO₂, apă și energie la Brăila, Comana și Enisala. Catalogul ICOS Carbon Portal mai listează două puncte din România.", to: "situri", hash: "icos", cta: "Stațiile ICOS" },
+              { t: "LifeWatch ERIC", b: "Centrul de date de la Sinaia și laboratoarele virtuale sunt nodul românesc al serviciilor LifeWatch pentru biodiversitate și ecosisteme.", href: "https://www.lifewatch.eu/", cta: "LifeWatch ERIC" },
+            ].map((c) => (
+              <Card key={c.t}>
+                <CardBody>
+                  <CardTitle>{c.t}</CardTitle>
+                  <CardText>{c.b}</CardText>
+                  {c.href ? (
+                    <a href={c.href} target="_blank" rel="noreferrer" className="mt-auto text-[14px] font-semibold text-[#2f7d4f] hover:underline dark:text-accent">
+                      {c.cta} ↗
+                    </a>
+                  ) : (
+                    <Link to={c.to!} hash={c.hash} className="mt-auto text-[14px] font-semibold text-[#2f7d4f] hover:underline dark:text-accent">
+                      {c.cta} →
+                    </Link>
+                  )}
+                </CardBody>
+              </Card>
+            ))}
+          </Grid>
+          <h3 className="mt-11 mb-3 font-display text-[22px] font-bold">Stațiile ICOS din România</h3>
+          <IcosTable rows={icos} />
+          <p className="mt-2.5 text-[13px] text-subtle">Stațiile de flux ecosistemic sunt înregistrate în DEIMS-SDR ca situri eLTER_ICOS. Ultimele două rânduri provin din catalogul de metadate ICOS Carbon Portal.</p>
+        </Container>
+      </Band>
+
+      <Band tone="ground" id="despre">
+        <Container>
+          <SectionHeader eyebrow="Despre noi" title="Viziune, misiune și strategie" />
+          <Grid cols={3}>
+            {[
+              ["Viziune", "Ecosistemele României, de la crestele carpatice până la Delta Dunării, sunt observate continuu, iar datele despre ele sunt deschise tuturor celor care iau decizii pe baza lor."],
+              ["Misiune", "Legăm cercetarea de teren, monitorizarea pe termen lung și analiza datelor într-o singură infrastructură, conectată la LifeWatch ERIC, eLTER RI și ICOS."],
+              ["Obiective strategice", "Extinderea rețelei de senzori, armonizarea protocoalelor cu standardele eLTER și ICOS și transformarea datelor în servicii pentru restaurarea ecologică și Planul Național de Restaurare."],
+            ].map(([t, b]) => (
+              <Card key={t}>
+                <CardBody>
+                  <CardTitle>{t}</CardTitle>
+                  <CardText>{b}</CardText>
+                </CardBody>
+              </Card>
+            ))}
+          </Grid>
+          <div className="mt-7">
+            <Button asChild variant="outline" size="site">
+              <Link to="despre">Despre LifeWatch România</Link>
+            </Button>
+          </div>
+        </Container>
+      </Band>
+
+      <Band id="idei">
+        <Container>
+          <SectionHeader eyebrow="Ce construim în continuare" title="Idei pentru următoarea versiune" lede="Propuneri care pornesc de la datele deja adunate aici. Le putem discuta cu partenerii și le putem prioritiza împreună." />
+          <Grid cols={3}>
+            {IDEAS.map(([t, b], i) => (
+              <Card key={t}>
+                <CardBody>
+                  <span className="text-[12.5px] font-semibold tracking-[0.1em] text-accent uppercase">Idee {i + 1}</span>
+                  <CardTitle>{t}</CardTitle>
+                  <CardText>{b}</CardText>
+                </CardBody>
+              </Card>
+            ))}
+          </Grid>
+        </Container>
+      </Band>
+
+      <Band tone="ground" id="noutati">
+        <Container>
+          <SectionHeader eyebrow="Noutăți" title="Din rețea" />
+          <Grid cols={3}>
+            {NEWS.map((n) => (
+              <Card key={n.title}>
+                <CardBody>
+                  <span className="text-[13px] text-subtle">{n.meta}</span>
+                  <CardTitle>{n.title}</CardTitle>
+                  <CardText>{n.body}</CardText>
+                  {n.href ? (
+                    <a href={n.href} target="_blank" rel="noreferrer" className="mt-auto text-[14px] font-semibold text-[#2f7d4f] hover:underline dark:text-accent">
+                      {n.cta} ↗
+                    </a>
+                  ) : (
+                    <Link to={n.to!} hash={n.hash} className="mt-auto text-[14px] font-semibold text-[#2f7d4f] hover:underline dark:text-accent">
+                      {n.cta}
+                    </Link>
+                  )}
+                </CardBody>
+              </Card>
+            ))}
+          </Grid>
+        </Container>
+      </Band>
+
+      <Band id="proiecte">
+        <Container>
+          <SectionHeader eyebrow="Rețea" title="Infrastructuri și proiecte partenere" />
+          <Grid cols={4}>
+            {PARTNERS.map((p) => (
+              <a key={p.name} href={p.href} target="_blank" rel="noreferrer" className="flex flex-col rounded-xl border border-border bg-surface transition-[border-color,transform] duration-150 hover:-translate-y-0.5 hover:border-accent">
+                <CardBody>
+                  <CardTitle>{p.name} ↗</CardTitle>
+                  <CardText>{p.body}</CardText>
+                </CardBody>
+              </a>
+            ))}
+          </Grid>
+          <h3 className="mt-10 mb-3.5 text-[16px] font-semibold text-muted">Proiecte europene în derulare</h3>
+          <div className="flex flex-wrap gap-1.5">
+            {PROJECTS.map((p) =>
+              p.href ? (
+                <a key={p.name} href={p.href} target="_blank" rel="noreferrer" className="inline-flex min-h-[30px] items-center rounded-md bg-surface-2 px-2.5 text-[13px] text-navy hover:bg-surface-3 dark:text-foreground">
+                  {p.name} ↗
+                </a>
+              ) : (
+                <Tag key={p.name} className="min-h-[30px] px-2.5 text-[13px] font-normal">
+                  {p.name}
+                </Tag>
+              ),
+            )}
+          </div>
+        </Container>
+      </Band>
+
+      <Band tone="ground" id="surse" className="!py-10">
+        <Container>
+          <h2 className="font-display text-[22px] font-bold">Surse de date și licențe</h2>
+          <div className="mt-4 grid gap-5 text-[13.5px] leading-[1.6] text-subtle md:grid-cols-3 [&_b]:text-foreground">
+            <p>
+              <b>DEIMS-SDR</b> pentru descrierea siturilor, limite, habitate EUNIS, climatologie și fotografii. Fiecare fișă trimite la înregistrarea originală.
+            </p>
+            <p>
+              <b>iNaturalist</b> pentru observații verificabile; fotografiile incluse au licențe Creative Commons, cu autorul afișat. <b>GBIF</b> pentru numărul de ocurențe.
+            </p>
+            <p>
+              <b>NASA POWER</b> pentru climatologia lunară, <b>EEA și Copernicus</b> pentru Natura 2000 și straturile de habitat, <b>ICOS Carbon Portal</b> pentru catalogul stațiilor, <b>CARTO</b> și <b>Natural Earth</b> pentru hărțile de bază.
+            </p>
+          </div>
+        </Container>
+      </Band>
+
+      <Band id="acces-cta" label="Colaborare">
+        <Container>
+          <div className="flex flex-wrap items-center justify-between gap-6 rounded-xl bg-[#2F7D4F] p-7 text-white sm:p-10">
+            <div className="max-w-[640px] flex-[1_1_460px]">
+              <h2 className="font-display text-[26px] leading-[1.15] font-bold sm:text-[32px]">Cercetează la stațiunile noastre</h2>
+              <p className="mt-2 text-[16px] leading-[1.6] text-[#E4F2E9] sm:text-[17px]">Găzduim echipe, campanii de teren și instalări de senzori. Spuneți-ne ce vă trebuie și vă răspundem cu o propunere.</p>
+            </div>
+            <button type="button" onClick={() => openHelp("Acces la stațiuni")} className="h-11 rounded-lg bg-white px-5 text-[15px] font-bold text-[#1F5A37] hover:bg-[#f0f7f2]">
+              Cere acces
+            </button>
+          </div>
+        </Container>
+      </Band>
     </>
+  );
+}
+
+export function IcosTable({ rows }: { rows: LwPoint[] }) {
+  return (
+    <div className="overflow-x-auto rounded-[10px] border border-border bg-surface">
+      <table className="w-full border-collapse text-[14px]">
+        <thead>
+          <tr className="text-left text-[12px] tracking-[0.05em] text-subtle uppercase">
+            {["Stație", "Tip", "Coordonate", "Operator", "Legături"].map((h) => (
+              <th key={h} className="border-b border-border px-2.5 py-2.5 font-semibold">{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((p) => (
+            <tr key={p.key} className="align-top">
+              <td className="border-b border-border px-2.5 py-2.5 font-semibold">{p.ro}</td>
+              <td className="border-b border-border px-2.5 py-2.5">{CAT[p.cat].one}</td>
+              <td className="tabular border-b border-border px-2.5 py-2.5">{p.lat.toFixed(3)}, {p.lon.toFixed(3)}</td>
+              <td className="border-b border-border px-2.5 py-2.5">{p.cat === "icos" ? "RCSES, Universitatea din București" : p.id === "icos-BSC" ? "NOAA Global Monitoring Laboratory" : "–"}</td>
+              <td className="border-b border-border px-2.5 py-2.5 whitespace-nowrap">
+                <Link to={sheetKey(p)} className="text-[#2f7d4f] hover:underline dark:text-accent">Fișa</Link> ·{" "}
+                <a href={p.deims || p.link} target="_blank" rel="noreferrer" className="text-[#2f7d4f] hover:underline dark:text-accent">
+                  {p.deims ? "DEIMS" : "ICOS"} ↗
+                </a>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

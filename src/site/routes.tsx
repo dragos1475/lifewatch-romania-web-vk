@@ -18,6 +18,9 @@ import NetworkPage from "./pages/network";
 import ProjectsPage from "./pages/projects";
 import FaqPage from "./pages/faq";
 import ContactPage from "./pages/contact";
+import SitesPage from "./pages/sites";
+import { SiteSheetPage } from "./pages/site-sheet";
+import { CAT, LW_POINTS, sheetKey } from "./content/lw";
 
 export interface SiteRoute {
   key: string;
@@ -33,13 +36,21 @@ const page = (key: string, title: string, description: string, Page: ComponentTy
 export const SITE_ROUTES: SiteRoute[] = [
   page("", "Acasă", "Infrastructura națională de cercetare e-Science pentru biodiversitate și ecosisteme: stații de teren, platforme LTSER și date deschise.", HomePage, photoSrc(HERO_PHOTO, 1200)),
   page("despre", "Despre", "Misiunea, obiectivele și istoricul LifeWatch România, infrastructură de cercetare a Universității din București.", AboutPage),
-  page("infrastructura", "Infrastructură", "Cele patru stații de cercetare: Brăila, Sfântu Gheorghe, Sinaia și Orșova.", InfrastructurePage),
+  page("infrastructura", "Stațiunile de cercetare", "Cele patru stațiuni de cercetare ale Universității din București: Sinaia, Brăila, Orșova și Sfântu Gheorghe, și accesul pentru cercetători.", InfrastructurePage),
   ...STATIONS.map((s) => ({
     key: `infrastructura/${s.slug}`,
     title: s.name,
     description: s.summary,
     Page: () => <StationPage station={s} />,
     image: photoSrc(s.photo, 1200),
+    searchable: false,
+  })),
+  page("situri", "Situri LTER și ICOS", "Siturile de cercetare ecologică pe termen lung din România, înregistrate în DEIMS-SDR, cu stațiile ICOS și stațiile meteo eLTER.", SitesPage),
+  ...LW_POINTS.map((p) => ({
+    key: sheetKey(p),
+    title: p.ro,
+    description: `${CAT[p.cat].one}: habitate, climă, biodiversitate, rețele și date pentru ${p.ro}.`,
+    Page: () => <SiteSheetPage point={p} />,
     searchable: false,
   })),
   page("platforme", "Platforme LTER și LTSER", "Cercetarea socio-ecologică pe termen lung în România și cele șase platforme documentate în explorator.", PlatformsPage),

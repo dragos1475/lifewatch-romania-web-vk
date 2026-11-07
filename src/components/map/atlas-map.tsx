@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import L from "leaflet";
 import { AnimatePresence, motion } from "motion/react";
 import { Expand, Home, Layers, Minimize, Minus, Plus } from "lucide-react";
-import { CONFIG } from "@/lib/config";
+import { basemapAttribution, CONFIG } from "@/lib/config";
 import { ROMANIA_BOUNDS, ROMANIA_CENTER } from "@/lib/geo";
 import { useI18n } from "@/lib/i18n";
 import { useDarkMode } from "@/hooks/use-media";
@@ -27,8 +27,6 @@ export interface AtlasMapProps {
   children?: ReactNode;
 }
 
-const ATTR_LIGHT = "Esri, HERE, Garmin, &copy; OpenStreetMap contributors";
-const ATTR_IMAGERY = "Esri, Maxar, Earthstar Geographics";
 
 function ControlButton({ label, onClick, children }: { label: string; onClick: () => void; children: ReactNode }) {
   return (
@@ -91,11 +89,11 @@ export function AtlasMap({ className, caption, busy, legend, overlays = [], onRe
       // One layer per theme. Switching themes swaps layers instead of calling setUrl(): Leaflet's
       // redraw() after setUrl() requests tiles at the fractional zoom (6.5), the tile server reads it
       // as 6, and the map showed Indonesia instead of Romania in dark mode.
-      const opts = { maxNativeZoom: 16, maxZoom: 19 };
+      const opts = { maxNativeZoom: CONFIG.cartoKey ? 19 : 16, maxZoom: 19 };
       baseRef.current = {
-        light: L.tileLayer(CONFIG.basemaps.light, { ...opts, attribution: ATTR_LIGHT }),
-        dark: L.tileLayer(CONFIG.basemaps.dark, { ...opts, attribution: ATTR_LIGHT }),
-        imagery: L.tileLayer(CONFIG.basemaps.imagery, { maxNativeZoom: 18, maxZoom: 19, attribution: ATTR_IMAGERY }),
+        light: L.tileLayer(CONFIG.basemaps.light, { ...opts, attribution: basemapAttribution(CONFIG.basemaps.light) }),
+        dark: L.tileLayer(CONFIG.basemaps.dark, { ...opts, attribution: basemapAttribution(CONFIG.basemaps.dark) }),
+        imagery: L.tileLayer(CONFIG.basemaps.imagery, { maxNativeZoom: 18, maxZoom: 19, attribution: basemapAttribution(CONFIG.basemaps.imagery) }),
         lightLabels: L.tileLayer(CONFIG.basemaps.lightLabels, { ...opts, pane: "labelsPane" }),
         darkLabels: L.tileLayer(CONFIG.basemaps.darkLabels, { ...opts, pane: "labelsPane" }),
       };

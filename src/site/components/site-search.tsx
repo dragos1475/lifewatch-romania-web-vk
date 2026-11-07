@@ -9,6 +9,8 @@ import { PLATFORMS } from "../content/platforms";
 import { DATASETS } from "../content/data";
 import { FAQ } from "../content/faq";
 import { EXPLORER_MODULES } from "../nav";
+import { CAT, LW_POINTS, sheetKey } from "../content/lw";
+import { CatShape } from "./lw-shapes";
 import { explorerHref, pageHref, useRouter } from "../router";
 import { SITE_ROUTES } from "../routes";
 
@@ -49,7 +51,7 @@ export function SiteSearch({ open, onOpenChange }: { open: boolean; onOpenChange
         <Command filter={filter} loop>
           <div className="flex items-center gap-2.5 border-b border-border px-3.5">
             <Search className="size-4 shrink-0 text-subtle" strokeWidth={1.75} />
-            <Command.Input autoFocus placeholder="Caută o pagină, o stație, o platformă sau un set de date" className="h-12 w-full bg-transparent text-[14px] outline-none placeholder:text-subtle focus-visible:!shadow-none" />
+            <Command.Input autoFocus placeholder="Caută un sit, o stațiune, o pagină sau un set de date" className="h-12 w-full bg-transparent text-[14px] outline-none placeholder:text-subtle focus-visible:!shadow-none" />
             <Kbd>Esc</Kbd>
           </div>
           <Command.List className="max-h-[min(60vh,440px)] overflow-y-auto overscroll-contain p-1.5">
@@ -70,6 +72,16 @@ export function SiteSearch({ open, onOpenChange }: { open: boolean; onOpenChange
                   <MapPin strokeWidth={1.75} />
                   <span className="flex-1 truncate">{s.name}</span>
                   <span className="tabular text-[11px] text-subtle">{s.founded}</span>
+                </Command.Item>
+              ))}
+            </Command.Group>
+
+            <Command.Group heading="Situri și stații (fișe de date)" className={groupClass}>
+              {LW_POINTS.map((p) => (
+                <Command.Item key={p.key} value={searchable(p.ro, p.fullName ?? "", CAT[p.cat].one, ...(p.ecosystems ?? []))} onSelect={() => go(sheetKey(p))} className={itemClass}>
+                  <CatShape cat={p.cat} size={14} />
+                  <span className="flex-1 truncate">{p.ro}</span>
+                  <span className="text-[11px] text-subtle">{CAT[p.cat].one}</span>
                 </Command.Item>
               ))}
             </Command.Group>

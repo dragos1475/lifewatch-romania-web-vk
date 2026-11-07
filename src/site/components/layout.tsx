@@ -1,65 +1,134 @@
-// Site chrome: sticky header with section navigation, ⌘K search, mobile sheet and footer.
-import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { motion } from "motion/react";
-import { ArrowUpRight, Menu, Search } from "lucide-react";
+// Site chrome: navy top bar (search, help, theme), main bar with mega menu, mobile sheet, footer and
+// the help widget.
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { ArrowUpRight, ChevronDown, Menu as MenuIcon, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LogoMark } from "@/components/logo";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger, SheetContent } from "@/components/ui/dialog";
 import { Kbd } from "@/components/ui/misc";
-import { ORG, INFRASTRUCTURES } from "../content/org";
-import { STATIONS } from "../content/stations";
-import { activeNav, NAV } from "../nav";
+import { formatDay, LW_GENERATED } from "../content/lw";
+import { activeMenu, MENUS, type MenuLink } from "../nav";
 import { explorerHref, Link, useRouter } from "../router";
-import { Container, SPRING } from "./primitives";
+import { Container } from "./primitives";
 import { SiteSearch } from "./site-search";
 import { ThemeButton, ThemeChoice } from "./theme-switch";
 import { useSearchShortcut, useShortcutLabel } from "./use-mod-key";
+import { HelpProvider, useHelp } from "./help-widget";
 
-function Wordmark({ size = "md", inverse = false }: { size?: "md" | "lg"; inverse?: boolean }) {
+function Brand({ inverse = false }: { inverse?: boolean }) {
   return (
-    <Link to="" className={cn("flex shrink-0 items-center gap-3 rounded-lg py-1", inverse ? "text-panel-foreground" : "text-foreground")} aria-label="LifeWatch România, Universitatea din București, pagina principală">
-      <LogoMark className={cn(size === "lg" ? "size-12" : "size-10", inverse && "rounded-[25%] ring-1 ring-white/25")} />
-      <span className="grid gap-0.5 leading-tight">
-        <span className={cn("font-semibold tracking-tight", size === "lg" ? "text-[22px]" : "text-[18px]")}>LifeWatch România</span>
-        <span className={cn("font-medium", inverse ? "text-panel-foreground/65" : "text-muted", size === "lg" ? "text-[15px]" : "text-[13px]")}>Universitatea din București</span>
+    <Link to="" className={cn("flex min-w-0 shrink-0 items-center gap-3 rounded-lg", inverse ? "text-white" : "text-navy dark:text-foreground")} aria-label="LifeWatch România, pagina principală">
+      <LogoMark className="size-11 shrink-0" />
+      <span className="grid min-w-0 leading-tight">
+        <span className="font-display text-[21px] leading-[1.1] font-extrabold">LifeWatch România</span>
+        <span className={cn("hidden text-[12px] sm:block", inverse ? "text-white/70" : "text-subtle")}>Infrastructură de cercetare pentru biodiversitate și ecosisteme</span>
       </span>
     </Link>
   );
 }
 
-function MobileNav({ current, onNavigate, onSearch }: { current: string | null; onNavigate: () => void; onSearch: () => void }) {
+/** A menu entry: site page, explorer or external address. */
+function MenuAnchor({ link, className, onClick, children }: { link: MenuLink; className?: string; onClick?: () => void; children: ReactNode }) {
+  if (link.href) {
+    const external = link.href !== "explorer";
+    return (
+      <a href={external ? link.href : explorerHref()} target={external ? "_blank" : undefined} rel={external ? "noreferrer" : undefined} className={className} onClick={onClick}>
+        {children}
+      </a>
+    );
+  }
   return (
-    <div className="flex h-full flex-col gap-6 overflow-y-auto px-4 py-5">
-      <Wordmark />
-      <button type="button" onClick={onSearch} className="flex h-9 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-[13px] text-subtle shadow-card">
-        <Search className="size-3.5" strokeWidth={1.75} />
-        Caută în site
-      </button>
-      <nav aria-label="Navigare principală" className="grid gap-0.5">
-        {NAV.map((n) => (
-          <Link key={n.key} to={n.key} onClick={onNavigate} aria-current={current === n.key ? "page" : undefined} className="flex h-10 items-center rounded-lg px-2.5 text-[15px] text-muted aria-[current=page]:bg-surface aria-[current=page]:font-medium aria-[current=page]:text-foreground aria-[current=page]:shadow-card">
-            {n.label}
+    <Link to={link.to ?? ""} hash={link.hash} className={className} onClick={onClick}>
+      {children}
+    </Link>
+  );
+}
+
+function TopBar({ onSearch }: { onSearch: () => void }) {
+  const shortcut = useShortcutLabel();
+  const { toggleHelp } = useHelp();
+  return (
+    <div className="bg-navy text-[13px] text-[#DCE7EB]">
+      <Container className="flex items-center justify-end gap-x-6 gap-y-2 py-[7px] md:justify-between">
+        <span className="hidden truncate md:block">Universitatea din București · Centrul de Cercetare în Ecologie Sistemică și Sustenabilitate (RCSES)</span>
+        <div className="flex shrink-0 items-center gap-2.5 sm:gap-3.5">
+          <Link to="" className="hidden text-[#DCE7EB] hover:text-white hover:underline sm:inline">
+            Acasă
           </Link>
+          <button type="button" onClick={onSearch} className="flex h-8 w-[170px] items-center gap-2 rounded-md bg-navy-2 px-2.5 text-left text-[#A9BCC5] transition-colors hover:text-white sm:w-[230px]">
+            <Search className="size-3.5 shrink-0 text-[#DCE7EB]" strokeWidth={2} />
+            <span className="flex-1 truncate">Caută situri, stațiuni…</span>
+            <Kbd className="hidden border-white/15 bg-white/5 text-[#A9BCC5] sm:inline-flex">{shortcut}</Kbd>
+          </button>
+          <button type="button" onClick={toggleHelp} className="hidden h-8 rounded-md border border-[#4E6B7C] px-3 text-white transition-colors hover:bg-navy-2 md:block">
+            Ai nevoie de ajutor?
+          </button>
+          <ThemeButton className="size-8 text-[#DCE7EB] hover:bg-navy-2 hover:text-white" />
+        </div>
+      </Container>
+    </div>
+  );
+}
+
+function MegaPanel({ menuId, onClose }: { menuId: string; onClose: () => void }) {
+  const menu = MENUS.find((m) => m.id === menuId)!;
+  return (
+    <div id="mega" className="absolute inset-x-0 top-full border-t border-border bg-background shadow-[0_18px_40px_rgba(14,42,59,0.14)]">
+      <Container className="flex flex-wrap gap-8 pt-7 pb-8">
+        <div className="max-w-[340px] flex-[1_1_260px]">
+          <p className="mb-2.5 text-[13px] font-semibold tracking-[0.1em] text-accent uppercase">{menu.label}</p>
+          <p className="mb-3.5 text-[15px] leading-[1.55] text-muted">{menu.desc}</p>
+          <button type="button" onClick={onClose} className="h-9 rounded-md border border-navy px-3 text-[14px] font-semibold text-navy hover:bg-surface-2 dark:border-border-strong dark:text-foreground">
+            Închide meniul
+          </button>
+        </div>
+        <ul className="grid flex-[2_1_480px] grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-x-6 gap-y-0.5">
+          {menu.links.map((l) => (
+            <li key={l.label}>
+              <MenuAnchor link={l} onClick={onClose} className="flex min-h-[52px] flex-col justify-center border-b border-border py-1.5 font-semibold text-navy transition-colors hover:text-accent dark:text-foreground dark:hover:text-accent">
+                <span>
+                  {l.label}
+                  {l.href && l.href !== "explorer" ? " ↗" : ""}
+                </span>
+                <small className="text-[13px] font-normal text-subtle">{l.note}</small>
+              </MenuAnchor>
+            </li>
+          ))}
+        </ul>
+      </Container>
+    </div>
+  );
+}
+
+function MobileNav({ onNavigate, onSearch }: { onNavigate: () => void; onSearch: () => void }) {
+  return (
+    <div className="flex h-full flex-col gap-5 overflow-y-auto px-4 py-5">
+      <Brand />
+      <button type="button" onClick={onSearch} className="flex h-10 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-[14px] text-subtle">
+        <Search className="size-4" strokeWidth={1.75} />
+        Caută situri, stațiuni…
+      </button>
+      <nav aria-label="Meniu principal" className="grid gap-4">
+        {MENUS.map((m) => (
+          <div key={m.id} className="grid gap-0.5">
+            <p className="px-1 pb-1 text-[12px] font-semibold tracking-[0.1em] text-accent uppercase">{m.label}</p>
+            {m.links.map((l) => (
+              <MenuAnchor key={l.label} link={l} onClick={onNavigate} className="flex min-h-10 items-center rounded-md px-2 text-[15px] font-medium text-foreground hover:bg-surface-2">
+                {l.label}
+              </MenuAnchor>
+            ))}
+          </div>
         ))}
       </nav>
-      <div className="grid gap-1 border-t border-border pt-4">
-        <p className="px-2.5 pb-1 text-[11px] font-medium text-subtle">Stații de cercetare</p>
-        {STATIONS.map((s) => (
-          <Link key={s.slug} to={`infrastructura/${s.slug}`} onClick={onNavigate} className="flex h-9 items-center justify-between rounded-lg px-2.5 text-[14px] text-muted hover:text-foreground">
-            {s.short}
-            <span className="tabular text-[11px] text-subtle">{s.founded}</span>
-          </Link>
-        ))}
-      </div>
-      <div className="mt-auto grid gap-3">
+      <div className="mt-auto grid gap-2.5">
         <ThemeChoice fill />
-      <Button asChild variant="primary" size="lg">
-        <a href={explorerHref()}>
+        <a href={explorerHref()} className="flex h-11 items-center justify-center gap-1.5 rounded-lg bg-navy text-[15px] font-semibold text-white dark:bg-lime dark:text-navy">
           Deschide exploratorul
-          <ArrowUpRight strokeWidth={1.75} />
+          <ArrowUpRight className="size-4" strokeWidth={1.75} />
         </a>
-      </Button>
+        <Link to="infrastructura" hash="acces" onClick={onNavigate} className="flex h-11 items-center justify-center rounded-lg bg-[#2f7d4f] text-[15px] font-semibold text-white">
+          Acces la stațiuni
+        </Link>
       </div>
     </div>
   );
@@ -67,158 +136,143 @@ function MobileNav({ current, onNavigate, onSearch }: { current: string | null; 
 
 function Header({ onSearch }: { onSearch: () => void }) {
   const { key } = useRouter();
-  const current = activeNav(key);
-  const shortcut = useShortcutLabel();
-  const [scrolled, setScrolled] = useState(false);
-  const [menu, setMenu] = useState(false);
+  const current = activeMenu(key);
+  const [open, setOpen] = useState<string | null>(null);
+  const [sheet, setSheet] = useState(false);
+  const ref = useRef<HTMLElement>(null);
 
+  useEffect(() => setOpen(null), [key]);
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setOpen(null);
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(null);
+    document.addEventListener("click", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("click", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
 
   return (
-    <header className={cn("sticky top-0 z-[1000] border-b transition-[background-color,border-color,box-shadow] duration-200", scrolled ? "border-border bg-background/90 shadow-card backdrop-blur-xl" : "border-border/70 bg-background/90 backdrop-blur-xl")}>
-      <div aria-hidden className="flex h-0.5">
-        <span className="flex-[5] bg-brand-navy" />
-        <span className="flex-[2] bg-brand-orange" />
-        <span className="flex-[3] bg-brand-green" />
-        <span className="flex-[2] bg-brand-teal" />
-        <span className="flex-1 bg-brand-sand" />
-      </div>
-      <Container className="flex h-[76px] items-center gap-2 sm:h-[82px] sm:gap-4">
-        <Wordmark />
-        <nav aria-label="Navigare principală" className="ml-4 hidden items-center gap-0.5 xl:flex">
-          {NAV.map((n) => {
-            const active = current === n.key;
-            return (
-              <Link key={n.key} to={n.key} aria-current={active ? "page" : undefined} className="relative rounded-lg px-3.5 py-2 text-[12px] font-medium text-muted transition-colors hover:text-foreground aria-[current=page]:text-accent">
-                {active ? <motion.span layoutId="site-nav" transition={SPRING} className="absolute inset-0 rounded-lg bg-accent-soft" /> : null}
-                <span className="relative">{n.label}</span>
-              </Link>
-            );
-          })}
+    <header ref={ref} className="sticky top-0 z-[1000] border-b border-border bg-background">
+      <Container className="flex items-center justify-between gap-7 py-3">
+        <Brand />
+        <nav aria-label="Meniu principal" className="hidden items-center gap-0.5 xl:flex">
+          {MENUS.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              aria-expanded={open === m.id}
+              aria-controls="mega"
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpen(open === m.id ? null : m.id);
+              }}
+              className={cn(
+                "inline-flex h-11 items-center gap-1.5 rounded-md px-2.5 text-[15px] font-semibold text-navy transition-colors hover:bg-surface-2 hover:text-accent aria-expanded:bg-surface-2 aria-expanded:text-accent 2xl:px-3 dark:text-foreground dark:hover:text-accent",
+                current === m.id && "text-accent dark:text-accent",
+              )}
+            >
+              {m.label}
+              <ChevronDown className={cn("size-3 transition-transform", open === m.id && "rotate-180")} strokeWidth={2.5} />
+            </button>
+          ))}
+          <a href={explorerHref()} className="inline-flex h-11 items-center rounded-md px-2.5 text-[15px] font-semibold text-navy transition-colors hover:bg-surface-2 hover:text-accent 2xl:px-3 dark:text-foreground">
+            Explorator
+          </a>
+          <Link to="infrastructura" hash="acces" className="ml-1.5 inline-flex h-11 items-center rounded-lg bg-[#2f7d4f] px-4 text-[14px] font-semibold text-white transition-colors hover:bg-[#1f5a37]">
+            Acces la stațiuni
+          </Link>
         </nav>
-        <div className="ml-auto flex items-center gap-1 sm:gap-2.5">
-          <button
-            type="button"
-            onClick={onSearch}
-            className="hidden h-9 w-[200px] items-center gap-2 rounded-lg border border-border bg-surface px-3 text-[13px] text-subtle shadow-card transition-colors hover:border-border-strong hover:text-muted md:flex"
-          >
-            <Search className="size-3.5" strokeWidth={1.75} />
-            <span className="flex-1 text-left">Caută</span>
-            <Kbd>{shortcut}</Kbd>
-          </button>
-          <button type="button" onClick={onSearch} aria-label="Caută în site" className="grid size-9 place-items-center rounded-lg text-muted hover:bg-surface-2 hover:text-foreground md:hidden">
-            <Search className="size-4" strokeWidth={1.75} />
-          </button>
-          <ThemeButton />
-          <Button asChild variant="primary" size="md" className="hidden sm:inline-flex">
-            <a href={explorerHref()}>
-              Explorator
-              <ArrowUpRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" strokeWidth={1.75} />
-            </a>
-          </Button>
-          <Dialog open={menu} onOpenChange={setMenu}>
-            <DialogTrigger asChild>
-              <button type="button" aria-label="Meniu" className="grid size-9 place-items-center rounded-lg text-muted hover:bg-surface-2 hover:text-foreground xl:hidden">
-                <Menu className="size-4" strokeWidth={1.75} />
-              </button>
-            </DialogTrigger>
-            <SheetContent title="Navigare">
-              <MobileNav current={current} onNavigate={() => setMenu(false)} onSearch={() => { setMenu(false); onSearch(); }} />
-            </SheetContent>
-          </Dialog>
-        </div>
+        <Dialog open={sheet} onOpenChange={setSheet}>
+          <DialogTrigger asChild>
+            <button type="button" aria-label="Deschide meniul" className="grid size-11 shrink-0 place-items-center rounded-lg border border-border text-navy xl:hidden dark:text-foreground">
+              <MenuIcon className="size-5" strokeWidth={2} />
+            </button>
+          </DialogTrigger>
+          <SheetContent title="Meniu">
+            <MobileNav
+              onNavigate={() => setSheet(false)}
+              onSearch={() => {
+                setSheet(false);
+                onSearch();
+              }}
+            />
+          </SheetContent>
+        </Dialog>
       </Container>
+      {open ? <MegaPanel menuId={open} onClose={() => setOpen(null)} /> : null}
     </header>
   );
 }
 
-const FOOTER_COLUMNS: { title: string; links: { label: string; to?: string; hash?: string; href?: string }[] }[] = [
-  {
-    title: "Organizație",
-    links: [
-      { label: "Despre", to: "despre" },
-      { label: "Rețea și comunitate", to: "retea" },
-      { label: "Proiecte", to: "proiecte" },
-      { label: "Contact", to: "contact" },
-    ],
-  },
+const FOOTER: { title: string; links: MenuLink[] }[] = [
   {
     title: "Infrastructură",
-    links: [{ label: "Toate stațiile", to: "infrastructura" }, ...STATIONS.map((s) => ({ label: s.short, to: `infrastructura/${s.slug}` })), { label: "Platforme LTSER", to: "platforme" }],
-  },
-  {
-    title: "Date",
     links: [
-      { label: "Exploratorul LTSER", href: explorerHref() },
-      { label: "Catalog de date", to: "date" },
-      { label: "API de acces", to: "date/api" },
-      { label: "Documentație", to: "date/documentatie" },
-      { label: "Servicii", to: "servicii" },
+      { label: "Stațiunile de cercetare", note: "", to: "infrastructura" },
+      { label: "Siturile noastre", note: "", to: "situri", hash: "noastre" },
+      { label: "Rețeaua LTER România", note: "", to: "situri", hash: "retea" },
+      { label: "Stațiile ICOS", note: "", to: "situri", hash: "icos" },
+      { label: "Platformele LTSER", note: "", to: "platforme" },
     ],
   },
   {
-    title: "Ajutor",
+    title: "Date și instrumente",
     links: [
-      { label: "Întrebări frecvente", to: "intrebari-frecvente" },
-      { label: "Fotografii și surse", to: "despre", hash: "fotografii" },
+      { label: "Exploratorul LTSER", note: "", href: "explorer" },
+      { label: "Catalog de date", note: "", to: "date" },
+      { label: "API de acces", note: "", to: "date/api" },
+      { label: "LTER România în DEIMS", note: "", href: "https://deims.org/networks/4260f964-0ac4-4406-8adc-5afc06e31779" },
+      { label: "ICOS Carbon Portal", note: "", href: "https://data.icos-cp.eu/portal/" },
+    ],
+  },
+  {
+    title: "Despre",
+    links: [
+      { label: "Despre LifeWatch România", note: "", to: "despre" },
+      { label: "LifeWatch, eLTER și ICOS", note: "", to: "", hash: "icos-elter" },
+      { label: "Ce construim", note: "", to: "", hash: "idei" },
+      { label: "Surse de date și licențe", note: "", to: "", hash: "surse" },
+      { label: "Contact", note: "", to: "contact" },
     ],
   },
 ];
 
 function Footer() {
+  const { openHelp } = useHelp();
   return (
-    <footer className="mt-12 bg-panel text-panel-foreground sm:mt-14">
-      <Container className="grid gap-8 py-9 sm:py-10 lg:grid-cols-12 lg:gap-12">
-        <div className="grid content-start gap-4 lg:col-span-4">
-          <Wordmark size="lg" inverse />
-          <p className="max-w-[40ch] text-[14px] leading-[1.75] text-panel-foreground/70">
-            Infrastructură națională de cercetare pentru biodiversitate și ecosisteme a {ORG.hostGenitive}.
-          </p>
-          <ul className="flex flex-wrap gap-x-4 gap-y-2 text-[12px] text-panel-foreground/55">
-            {INFRASTRUCTURES.map((i) => (
-              <li key={i.id}>
-                <a href={i.url} target="_blank" rel="noreferrer" className="transition-colors hover:text-panel-foreground">
-                  {i.name}
-                </a>
-              </li>
+    <footer className="mt-auto bg-panel text-[#DCE7EB]">
+      <Container className="flex flex-wrap gap-10 pt-14 pb-7">
+        <div className="flex min-w-0 flex-[2_1_300px] flex-col gap-3">
+          <b className="font-display text-[22px] font-extrabold text-white">LifeWatch România</b>
+          <p className="max-w-[400px] text-[14px] leading-[1.6] text-[#CFDCE2]">Infrastructură de cercetare a Universității din București pentru biodiversitate, ecosisteme și sisteme socio-ecologice, conectată la LifeWatch ERIC, eLTER RI și ICOS.</p>
+          <p className="max-w-[400px] text-[14px] leading-[1.6] text-[#CFDCE2]">Centrul de Cercetare în Ecologie Sistemică și Sustenabilitate (RCSES), Facultatea de Biologie, Universitatea din București · Splaiul Independenței 91–95, București</p>
+          <div>
+            <button type="button" onClick={() => openHelp("Întrebare generală")} className="h-9 rounded-md bg-lime px-3 text-[14px] font-bold text-navy hover:bg-[#a8d662]">
+              Scrieți-ne
+            </button>
+          </div>
+        </div>
+        {FOOTER.map((col) => (
+          <nav key={col.title} aria-label={col.title} className="flex flex-[1_1_160px] flex-col gap-2.5 text-[14px]">
+            <strong className="text-white">{col.title}</strong>
+            {col.links.map((l) => (
+              <MenuAnchor key={l.label} link={l} className="text-[#CFDCE2] hover:text-white hover:underline">
+                {l.label}
+                {l.href && l.href !== "explorer" ? " ↗" : ""}
+              </MenuAnchor>
             ))}
-          </ul>
-        </div>
-        {/* Phones: one row per group, title on the left and links wrapped next to it. */}
-        <div className="grid gap-3.5 sm:grid-cols-4 sm:gap-x-6 lg:col-span-8">
-          {FOOTER_COLUMNS.map((col) => (
-            <div key={col.title} className="grid grid-cols-[112px_minmax(0,1fr)] gap-3 sm:grid-cols-1 sm:content-start sm:gap-2.5">
-              <p className="pt-[3px] text-[10px] font-semibold tracking-[0.14em] text-panel-foreground/45 uppercase sm:pt-0">{col.title}</p>
-              <ul className="flex flex-wrap gap-x-3.5 gap-y-1 sm:grid sm:gap-1.5">
-                {col.links.map((l) => (
-                  <li key={l.label}>
-                    {l.to !== undefined ? (
-                      <Link to={l.to} hash={l.hash} className="text-[13px] text-panel-foreground/70 transition-colors hover:text-panel-foreground">
-                        {l.label}
-                      </Link>
-                    ) : (
-                      <a href={l.href} className="text-[13px] text-panel-foreground/70 transition-colors hover:text-panel-foreground">
-                        {l.label}
-                      </a>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
+          </nav>
+        ))}
       </Container>
-      <div className="border-t border-border bg-background text-foreground">
-        <Container className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-4 text-[11px] text-subtle">
-          <p>{ORG.name} · {ORG.host}</p>
+      <div className="border-t border-[#23485C]">
+        <Container className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-4 text-[12.5px] text-[#A9BCC5]">
+          <span>© {LW_GENERATED.slice(0, 4)} Universitatea din București · Date: DEIMS-SDR, ICOS Carbon Portal, iNaturalist, GBIF, NASA POWER, EEA/Copernicus, Natural Earth</span>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-            <p>Fotografii de pe Unsplash, folosite conform licenței Unsplash.</p>
-            <ThemeChoice />
+            <span>Instantaneu de date actualizat la {formatDay(LW_GENERATED)}</span>
+            <ThemeChoice className="border-white/15 bg-white/5 [&_button]:text-[#A9BCC5] [&_button:hover]:text-white [&_button[aria-checked=true]]:text-foreground" />
           </div>
         </Container>
       </div>
@@ -231,16 +285,19 @@ export function SiteLayout({ children }: { children: ReactNode }) {
   const toggle = useCallback(() => setSearch((v) => !v), []);
   useSearchShortcut(toggle);
   return (
-    <div className="flex min-h-dvh flex-col text-[15px]">
-      <a href="#continut" className="sr-only z-[2000] rounded-lg bg-foreground px-3 py-2 text-background focus:not-sr-only focus:fixed focus:top-3 focus:left-3">
-        Sari la conținut
-      </a>
-      <Header onSearch={() => setSearch(true)} />
-      <main id="continut" tabIndex={-1} className="relative flex-1 focus:outline-none">
-        {children}
-      </main>
-      <Footer />
-      <SiteSearch open={search} onOpenChange={setSearch} />
-    </div>
+    <HelpProvider>
+      <div className="flex min-h-dvh flex-col text-[15px]">
+        <a href="#continut" className="sr-only z-[2000] rounded-lg bg-foreground px-3 py-2 text-background focus:not-sr-only focus:fixed focus:top-3 focus:left-3">
+          Sari la conținut
+        </a>
+        <TopBar onSearch={() => setSearch(true)} />
+        <Header onSearch={() => setSearch(true)} />
+        <main id="continut" tabIndex={-1} className="relative flex-1 focus:outline-none">
+          {children}
+        </main>
+        <Footer />
+        <SiteSearch open={search} onOpenChange={setSearch} />
+      </div>
+    </HelpProvider>
   );
 }

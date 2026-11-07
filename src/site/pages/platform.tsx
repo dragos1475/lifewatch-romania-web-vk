@@ -9,6 +9,7 @@ import { Atlas, ATLAS_H, ATLAS_W } from "../components/atlas";
 import { CreditedPhoto } from "../components/blocks";
 import { BulletList, Container, Crumbs, ExternalLink, Figures, Reveal } from "../components/primitives";
 import { PageMotionGraphic, usePageMotionScene } from "../components/page-motion";
+import { lwByKey, PLATFORM_POINT, sheetKey } from "../content/lw";
 
 export function PlatformPage({ platform }: { platform: Platform }) {
   const scene = usePageMotionScene();
@@ -62,6 +63,17 @@ export function PlatformPage({ platform }: { platform: Platform }) {
             <p className="px-2.5 pt-1.5 pb-1 text-[11.5px] text-subtle">Conturul zonei în setul de date al exploratorului.</p>
           </div>
           <dl className="grid content-start gap-4">
+            {lwByKey(PLATFORM_POINT[platform.slug] ?? "") ? (
+              <div className="grid gap-2">
+                <dt className="text-[12px] font-medium text-subtle">Fișa de date</dt>
+                <dd>
+                  <Link to={sheetKey(lwByKey(PLATFORM_POINT[platform.slug])!)} className="group inline-flex items-center gap-1.5 text-[14px] font-semibold text-[#2f7d4f] dark:text-accent">
+                    Habitate, climă, biodiversitate și API
+                    <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" strokeWidth={1.75} />
+                  </Link>
+                </dd>
+              </div>
+            ) : null}
             {platform.deims.length ? (
               <div className="grid gap-2">
                 <dt className="text-[12px] font-medium text-subtle">Fișe DEIMS-SDR</dt>

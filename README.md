@@ -85,8 +85,25 @@ două servicii, pagina 404 și cache potrivit pentru fișierele cu hash, este î
 [deploy/nginx.conf.example](deploy/nginx.conf.example).
 
 La instalare se editează doar `dist/runtime-config.js` (sursa: `public/runtime-config.js`):
-adresele serviciilor, modul de lucru (`auto`, `live`, `demo`) și hărțile de bază. Pentru o
-singură vizită, `?mod=demo` sau `?mod=live` în adresa paginii suprascrie modul.
+adresele serviciilor, modul de lucru (`auto`, `live`, `demo`), cheia CARTO (`cartoKey`) și
+hărțile de bază. Pentru o singură vizită, `?mod=demo` sau `?mod=live` în adresa paginii
+suprascrie modul. Cheia CARTO (carto.com/basemaps/apikey) este publică prin natura ei, fiindcă
+apare în adresa fiecărei dale; fără ea, hărțile site-ului rămân pe fundalul vectorial simplu,
+iar exploratorul revine la hărțile Esri.
+
+### Datele siturilor
+
+Hărțile, fișele de sit (`/situri/<sit>/`), stațiunile și cifrele de pe prima pagină folosesc un
+instantaneu din DEIMS-SDR, NASA POWER, iNaturalist, GBIF, ICOS Carbon Portal și EEA Natura 2000,
+preluat din site-ul static `lifewatch-romania-site/`. Pentru un instantaneu nou se reface acolo
+datele (`bash tools/refresh.sh`), apoi:
+
+```
+node scripts/import-lw-data.mjs lifewatch-romania-site
+```
+
+Scriptul scrie `src/site/content/lw-data.json`, `public/data/lw-boundaries.json`,
+`public/data/lw-basemap.json` și copiază fotografiile în `public/img/`.
 
 ## Ce conține
 
@@ -138,6 +155,7 @@ index.html                  pagina site-ului (șablon pentru prerandare)
 explorator/index.html       pagina exploratorului
 scripts/prerender.mjs       scrie HTML static pentru fiecare pagină a site-ului
 scripts/make_basemap.py     generează contururile României și ale vecinilor pentru hărțile SVG
+scripts/import-lw-data.mjs  importă instantaneul siturilor (DEIMS, iNaturalist, NASA POWER) și fotografiile
 public/                     runtime-config.js, favicon, geometrii LTSER și UAT, stațiile rețelelor
 src/
   site/                     site-ul public: router pe căi, pagini, conținut, componente, intrări client și SSR

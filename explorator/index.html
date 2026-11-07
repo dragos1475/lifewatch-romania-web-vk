@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>LTSER Explorer · LifeWatch România</title>
     <meta name="description" content="Teledetecție, stații meteorologice, eddy covariance, date brute și indicatori sociali pentru cele șase zone LTSER din România." />
-    <meta name="theme-color" content="#fafafa" />
+    <meta name="theme-color" content="#ffffff" />
     <script>
       // Applies the stored theme (or the system one) before first paint. See src/lib/theme.ts.
       (function () {
@@ -14,7 +14,7 @@
         var dark = pref === "dark" || (pref !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
         root.dataset.theme = dark ? "dark" : "light";
         root.style.colorScheme = dark ? "dark" : "light";
-        if (dark) document.querySelector('meta[name="theme-color"]').setAttribute("content", "#0a0e17");
+        if (dark) document.querySelector('meta[name="theme-color"]').setAttribute("content", "#0a2130");
       })();
     </script>
     <link rel="icon" href="%BASE_URL%favicon.svg" type="image/svg+xml" />
