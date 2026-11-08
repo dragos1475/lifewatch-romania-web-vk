@@ -1,6 +1,7 @@
 // Path router for the public site. Pages are prerendered to /<key>/index.html at build time;
 // after the first load, links swap pages in place through the History API.
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type AnchorHTMLAttributes, type MouseEvent, type ReactNode } from "react";
+import { baseKey, getLang, keyFor, type Lang } from "./i18n/core";
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -11,8 +12,14 @@ export function toKey(pathname: string) {
   return decodeURI(path).replace(/index\.html$/, "").replace(/^\/+|\/+$/g, "");
 }
 
-/** Public URL of a site page: "infrastructura/braila" becomes "/infrastructura/braila/". */
-export const pageHref = (key: string, hash?: string) => `${BASE}${key ? `${key}/` : ""}${hash ? `#${hash}` : ""}`;
+/** Public URL of a page in a given language: ("statiuni/braila", "en") becomes "/en/statiuni/braila/". */
+export const hrefIn = (key: string, lang: Lang, hash?: string) => {
+  const k = keyFor(baseKey(key), lang);
+  return `${BASE}${k ? `${k}/` : ""}${hash ? `#${hash}` : ""}`;
+};
+
+/** Public URL of a site page in the current language: "statiuni/braila" becomes "/statiuni/braila/" or "/en/statiuni/braila/". */
+export const pageHref = (key: string, hash?: string) => hrefIn(key, getLang(), hash);
 
 /** Deep link into the explorer, which keeps its own hash router. */
 export function explorerHref(path = "", query: Record<string, string | number> = {}) {

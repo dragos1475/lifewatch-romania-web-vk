@@ -10,11 +10,14 @@ import { Band, Container, SectionHeader } from "../components/primitives";
 import { BaseSwitch, EEA, LwMap, type BaseName } from "../components/lw-map";
 import { CatShape } from "../components/lw-shapes";
 import { Card, CardBody, CardImage, CardText, CardTitle, PointTags, Tag } from "../components/lw-ui";
-import { useHelp } from "../components/help-widget";
+import { LTSER_URL, asset } from "../content/lw";
+import { sitePhoto } from "../content/site-photos";
+import { PROJECTS as ALL_PROJECTS } from "../content/projects";
 
 const P = LW_POINTS;
 const COUNTS = P.reduce<Record<string, number>>((a, p) => ((a[p.cat] = (a[p.cat] ?? 0) + 1), a), {});
-const OURS = P.filter((p) => p.ours && p.cat !== "statiune").sort((a, b) => (a.cat === "ltser" ? 0 : 1) - (b.cat === "ltser" ? 0 : 1));
+// Our long-term sites; the field-network stations from LTSER Explorer are listed on their own.
+const OURS = P.filter((p) => p.ours && p.cat !== "statiune" && !p.fromLtser).sort((a, b) => (a.cat === "ltser" ? 0 : 1) - (b.cat === "ltser" ? 0 : 1));
 const DEIMS = P.filter((p) => p.deims);
 const STATIONS = P.filter((p) => p.cat === "statiune");
 const sheet = (key: string) => sheetKey(lwByKey(key)!);
@@ -44,7 +47,7 @@ function MapHero() {
       <div className="z-[500] max-h-[calc(100%-40px)] overflow-auto border-b border-border bg-surface p-5 md:absolute md:top-5 md:left-5 md:w-[380px] md:rounded-xl md:border md:shadow-[0_18px_44px_rgba(14,42,59,0.22)] lg:left-[max(20px,calc((100vw-1920px)/2+48px))]">
         <p className="text-[12.5px] font-semibold tracking-[0.1em] text-accent uppercase">LifeWatch România · Universitatea din București</p>
         <h1 className="mt-2 font-display text-[27px] leading-[1.1] font-bold tracking-[-0.01em] text-navy dark:text-foreground">Harta zonelor de cercetare</h1>
-        <p className="mt-2 text-[15px] leading-[1.5] text-muted">Stațiunile noastre, platformele LTSER, siturile LTER și stațiile ICOS din România, pe aceeași hartă. Alegeți un punct ca să vedeți habitatele, clima și speciile observate acolo.</p>
+        <p className="mt-2 text-[15px] leading-[1.5] text-muted">Stațiunile noastre, platformele LTSER, siturile LTER, stațiile de flux și cele 20 de stații climatice LifeWatch, pe aceeași hartă. Alegeți un punct ca să vedeți habitatele, clima și speciile observate acolo.</p>
         <fieldset className="mt-3 grid gap-0.5">
           <legend className="sr-only">Ce se afișează pe hartă</legend>
           {CAT_ORDER.map((c) => (
@@ -77,7 +80,12 @@ function MapHero() {
             <a href={explorerHref()}>Deschide exploratorul</a>
           </Button>
           <Button asChild variant="outline" size="site">
-            <Link to="infrastructura">Stațiunile</Link>
+            <a href={LTSER_URL} target="_blank" rel="noreferrer">
+              LTSER Explorer <ArrowUpRight />
+            </a>
+          </Button>
+          <Button asChild variant="green" size="site">
+            <Link to="acces">Acces</Link>
           </Button>
         </div>
       </div>
@@ -86,14 +94,13 @@ function MapHero() {
 }
 
 function Stats() {
-  const n2k = new Set(P.flatMap((p) => (p.n2k ?? []).map((s) => s.code))).size;
   const obs = OURS.reduce((a, p) => a + (p.inat?.obs ?? 0), 0);
   const stats: [number, string][] = [
     [STATIONS.length, "stațiuni de cercetare ale Universității din București"],
+    [11, "laboratoare noi sau modernizate"],
+    [COUNTS.meteo ?? 0, "stații climatice automate"],
+    [COUNTS.icos ?? 0, "stații de flux eddy covariance"],
     [DEIMS.length, "situri românești în registrul DEIMS-SDR"],
-    [OURS.length, "situri pe termen lung operate de echipele UB"],
-    [COUNTS.icos ?? 0, "stații de flux ecosistemic ICOS"],
-    [n2k, "situri Natura 2000 care se suprapun cu zonele noastre"],
     [obs, "observații iNaturalist în siturile noastre"],
   ];
   return (
@@ -139,7 +146,7 @@ export function SiteCard({ p, abstract }: { p: LwPoint; abstract?: boolean }) {
 
 export function StationCard({ p }: { p: LwPoint }) {
   return (
-    <Link to={`infrastructura/${STATION_SLUG[p.id]}`} className="group flex flex-col overflow-hidden rounded-xl border border-border bg-surface transition-[border-color,transform] duration-150 hover:-translate-y-0.5 hover:border-accent">
+    <Link to={`statiuni/${STATION_SLUG[p.id]}`} className="group flex flex-col overflow-hidden rounded-xl border border-border bg-surface transition-[border-color,transform] duration-150 hover:-translate-y-0.5 hover:border-accent">
       <CardImage image={photoOf(p)} name={p.short ?? p.ro} />
       <CardBody>
         <span className="text-[13px] font-bold text-[#2f7d4f] dark:text-accent">
@@ -203,13 +210,22 @@ function ToolCard({ t }: { t: (typeof TOOLS)[number] }) {
 }
 
 const ARCH = [
-  { step: "01 · Teren", title: "Stațiuni și situri", body: "Stațiuni de cercetare, platforme LTSER, stații de flux ICOS și stații meteo eLTER." },
-  { step: "02 · Servicii centrale", title: "Centrul de date Sinaia", body: "Calcul de înaltă performanță, cloud privat și laboratoare virtuale conectate la LifeWatch ERIC." },
-  { step: "03 · Registre europene", title: "DEIMS, ICOS, GBIF", body: "Metadatele siturilor stau în DEIMS-SDR, fluxurile în ICOS Carbon Portal, ocurențele în GBIF." },
+  { step: "01 · Teren", title: "Laboratoare și stații", body: "11 laboratoare, 20 de stații climatice, 5 stații de flux, radiometre UV și solare, sonde cu neutroni cosmici, o geamandură și fenocamere." },
+  { step: "02 · Centrul de date", title: "Sinaia", body: "Cloud privat cu GPU-uri, stocare NVMe extensibilă la petabytes și laboratoare virtuale conectate la LifeWatch ERIC." },
+  { step: "03 · Servicii standard", title: "OGC, COG, STAC", body: "Servicii WMS, WFS, WCS și CSW, OGC API, Cloud Optimised GeoTIFF și catalog STAC, interoperabile cu INSPIRE." },
+];
+
+/** Project photos on the home page, each leading to its section of the infrastructure page. */
+const IN_PICTURES = [
+  { photo: sitePhoto("9dcd0bec"), caption: "Stația de flux de la Enisala", hash: "retea-teren" },
+  { photo: sitePhoto("fab11817"), caption: "Genetică, Brăila", hash: "genetica" },
+  { photo: sitePhoto("d6f67b83"), caption: "Centrul de date, Sinaia", hash: "centru-date" },
+  { photo: sitePhoto("09c06e7d"), caption: "Rețeaua din teren", hash: "retea-teren" },
+  { photo: sitePhoto("a44b1326"), caption: "Geoportalul", hash: "servicii" },
 ];
 
 const IDEAS: [string, string][] = [
-  ["Fluxuri ICOS în timp real", "Grafice zilnice de CO₂, evapotranspirație și energie pentru Brăila, Comana și Enisala, citite din ICOS Carbon Portal imediat ce datele sunt publicate."],
+  ["Fluxuri ICOS în timp real", "Grafice zilnice de CO₂, metan, evapotranspirație și energie pentru cele cinci stații de flux, citite direct din centrul de date de la Sinaia."],
   ["Fișă NRR pentru fiecare sit", "Raport generat automat cu habitatele Anexei I, presiunile și măsurile potrivite, gata de folosit în Planul Național de Restaurare."],
   ["Actualizare automată nocturnă", "Un flux GitHub Actions reface instantaneul din DEIMS, iNaturalist, GBIF și NASA POWER în fiecare noapte."],
   ["BioBlitz LifeWatch România", "Câte un proiect iNaturalist pentru fiecare stațiune, cu întâlniri anuale de inventariere împreună cu studenții și comunitățile locale."],
@@ -233,15 +249,8 @@ const PARTNERS = [
   { name: "DANUBIUS-RI", body: "Cercetarea sistemelor fluviu–mare, de la bazin la coastă.", href: "https://www.danubius-ri.eu/" },
 ];
 const PROJECTS: { name: string; href?: string }[] = [
-  { name: "Restore4Life", href: "https://www.restore4life.eu/" },
   { name: "Wetland Restoration Hub", href: "https://wetlandrestorationhub.eu/" },
-  { name: "MARCO-BOLO" },
-  { name: "RESTORE4Cs" },
-  { name: "BioAgora" },
-  { name: "SELINA" },
-  { name: "CROSSEU" },
-  { name: "RIVER-EYE" },
-  { name: "EMPOWERALL" },
+  ...ALL_PROJECTS.filter((p) => p.name !== "LifeWatch România" && p.name !== "eLTER").map((p) => ({ name: p.name, href: /^https?:/.test(p.url) ? p.url : undefined })),
 ];
 
 function Grid({ cols, children, className }: { cols: 2 | 3 | 4; children: ReactNode; className?: string }) {
@@ -249,7 +258,6 @@ function Grid({ cols, children, className }: { cols: 2 | 3 | 4; children: ReactN
 }
 
 export default function HomePage() {
-  const { openHelp } = useHelp();
   const icos = useMemo(() => P.filter((p) => p.cat === "icos" || p.cat === "icos-cat"), []);
   const lterCount = P.filter((p) => p.cat === "ltser" || p.cat === "lter").length;
   return (
@@ -295,11 +303,36 @@ export default function HomePage() {
         </Container>
       </Band>
 
+      <Band tone="ground" id="in-imagini">
+        <Container>
+          <SectionHeader
+            eyebrow="Proiectul LifeWatch România"
+            title="Infrastructura, în imagini"
+            lede="11 laboratoare, 20 de stații de observare în teren și un centru de date, construite cu fonduri europene în stațiunile Universității din București."
+            aside={
+              <Button asChild variant="outline" size="site">
+                <Link to="infrastructura">Proiectul și infrastructura</Link>
+              </Button>
+            }
+          />
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-5">
+            {IN_PICTURES.map((x, i) => (
+              <Link key={x.caption} to="infrastructura" hash={x.hash} className={cn("group grid content-start gap-2", i === 0 && "col-span-2 md:col-span-1")}>
+                <span className="block overflow-hidden rounded-xl border border-border bg-surface-3">
+                  <img loading="lazy" src={asset(x.photo.src)} alt={x.photo.alt} width={x.photo.w} height={x.photo.h} className="aspect-[4/3] w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
+                </span>
+                <span className="text-[14px] font-semibold text-navy group-hover:text-accent dark:text-foreground">{x.caption}</span>
+              </Link>
+            ))}
+          </div>
+        </Container>
+      </Band>
+
       <Band tone="dark" id="arhitectura">
         <Container>
           <p className="text-[12.5px] font-semibold tracking-[0.1em] text-lime uppercase">Cum funcționează</p>
           <h2 className="mt-2 font-display text-[26px] leading-[1.15] font-bold sm:text-[32px] lg:text-[36px]">De la senzorul din teren la fișa de date</h2>
-          <p className="mt-2 max-w-[780px] text-[15.5px] leading-[1.65] text-[#CFDCE2] sm:text-[17px]">Rețeaua fizică produce datele, serviciile centrale de la Sinaia le procesează, iar portalul le publică împreună cu datele europene despre același loc.</p>
+          <p className="mt-2 max-w-[780px] text-[15.5px] leading-[1.65] text-[#CFDCE2] sm:text-[17px]">Platforma urmează arhitectura comună propusă de ESA pentru platformele de exploatare a datelor de observare a Pământului și este construită integral cu software liber.</p>
           <Grid cols={4}>
             {ARCH.map((a) => (
               <div key={a.step} className="grid content-start gap-2.5 rounded-xl border border-[#2C5A6E] bg-navy-2 p-[22px]">
@@ -309,11 +342,26 @@ export default function HomePage() {
               </div>
             ))}
             <a href={explorerHref()} className="grid content-start gap-2.5 rounded-xl bg-lime p-[22px] text-navy transition-colors hover:bg-[#cdee98]">
-              <span className="text-[12.5px] font-semibold tracking-[0.1em] uppercase">04 · Portal</span>
-              <h3 className="font-display text-[20px] font-bold">Exploratorul și fișele de sit</h3>
-              <p className="text-[15px] leading-[1.55]">O fișă pentru fiecare loc, cu habitate, climă, biodiversitate și legături spre date, plus exploratorul LTSER pentru serii de măsurători.</p>
+              <span className="text-[12.5px] font-semibold tracking-[0.1em] uppercase">04 · Utilizatori</span>
+              <h3 className="font-display text-[20px] font-bold">Geoportal și explorator</h3>
+              <p className="text-[15px] leading-[1.55]">Geoportalul, LTSER Explorer cu măsurătorile stațiilor și fișe de sit cu habitate, climă și biodiversitate.</p>
             </a>
           </Grid>
+          <div className="mt-6 flex flex-wrap gap-2.5">
+            <Button asChild variant="lime" size="site-sm">
+              <Link to="infrastructura" hash="platforma">Arhitectura platformei</Link>
+            </Button>
+            <Button asChild size="site-sm" className="border border-[#4E6B7C] bg-transparent text-white hover:bg-navy-2">
+              <a href="https://map.lifewatch.ro/" target="_blank" rel="noreferrer">
+                Geoportalul <ArrowUpRight />
+              </a>
+            </Button>
+            <Button asChild size="site-sm" className="border border-[#4E6B7C] bg-transparent text-white hover:bg-navy-2">
+              <a href={LTSER_URL} target="_blank" rel="noreferrer">
+                LTSER Explorer <ArrowUpRight />
+              </a>
+            </Button>
+          </div>
         </Container>
       </Band>
 
@@ -323,7 +371,7 @@ export default function HomePage() {
           <Grid cols={3}>
             {[
               { t: "eLTER RI", b: `Rețeaua LTER România are ${DEIMS.length} fișe în DEIMS-SDR, dintre care ${lterCount} platforme și situri LTER. Fiecare are un cod de sit european, de exemplu LTER_EU_RO_006 pentru Insulele Brăilei.`, href: "https://deims.org/networks/4260f964-0ac4-4406-8adc-5afc06e31779", cta: "LTER România în DEIMS" },
-              { t: "ICOS", b: "Trei stații de flux ecosistemic operate de RCSES măsoară CO₂, apă și energie la Brăila, Comana și Enisala. Catalogul ICOS Carbon Portal mai listează două puncte din România.", to: "situri", hash: "icos", cta: "Stațiile ICOS" },
+              { t: "ICOS", b: "Proiectul a instalat cinci stații de flux care măsoară CO₂, apă și energie, iar una, într-o zonă umedă, măsoară și metanul. Stațiile de la Brăila, Comana și Enisala au fișe în DEIMS.", to: "situri", hash: "icos", cta: "Stațiile de flux" },
               { t: "LifeWatch ERIC", b: "Centrul de date de la Sinaia și laboratoarele virtuale sunt nodul românesc al serviciilor LifeWatch pentru biodiversitate și ecosisteme.", href: "https://www.lifewatch.eu/", cta: "LifeWatch ERIC" },
             ].map((c) => (
               <Card key={c.t}>
@@ -343,9 +391,9 @@ export default function HomePage() {
               </Card>
             ))}
           </Grid>
-          <h3 className="mt-11 mb-3 font-display text-[22px] font-bold">Stațiile ICOS din România</h3>
+          <h3 className="mt-11 mb-3 font-display text-[22px] font-bold">Stațiile de flux din România</h3>
           <IcosTable rows={icos} />
-          <p className="mt-2.5 text-[13px] text-subtle">Stațiile de flux ecosistemic sunt înregistrate în DEIMS-SDR ca situri eLTER_ICOS. Ultimele două rânduri provin din catalogul de metadate ICOS Carbon Portal.</p>
+          <p className="mt-2.5 text-[13px] text-subtle">Proiectul a instalat cinci stații de flux. Trei au deja fișe în DEIMS-SDR ca situri eLTER_ICOS, iar POLI și BV se urmăresc în LTSER Explorer. Ultimele două rânduri provin din catalogul de metadate ICOS Carbon Portal (interogare SPARQL din 7 noiembrie 2026).</p>
         </Container>
       </Band>
 
@@ -471,9 +519,9 @@ export default function HomePage() {
               <h2 className="font-display text-[26px] leading-[1.15] font-bold sm:text-[32px]">Cercetează la stațiunile noastre</h2>
               <p className="mt-2 text-[16px] leading-[1.6] text-[#E4F2E9] sm:text-[17px]">Găzduim echipe, campanii de teren și instalări de senzori. Spuneți-ne ce vă trebuie și vă răspundem cu o propunere.</p>
             </div>
-            <button type="button" onClick={() => openHelp("Acces la stațiuni")} className="h-11 rounded-lg bg-white px-5 text-[15px] font-bold text-[#1F5A37] hover:bg-[#f0f7f2]">
+            <Link to="acces" hash="cerere" className="inline-flex h-11 items-center rounded-lg bg-white px-5 text-[15px] font-bold text-[#1F5A37] hover:bg-[#f0f7f2]">
               Cere acces
-            </button>
+            </Link>
           </div>
         </Container>
       </Band>

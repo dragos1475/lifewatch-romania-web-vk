@@ -26,7 +26,7 @@ export default function ContactPage() {
                   <div className="grid gap-0.5">
                     <p className="tabular text-[12px] text-subtle">din {s.founded} · județul {s.county}</p>
                     <h2 className="text-[16.5px] font-semibold tracking-tight">
-                      <Link to={`infrastructura/${s.slug}`} className="hover:text-accent">{s.name}</Link>
+                      <Link to={`statiuni/${s.slug}`} className="hover:text-accent">{s.name}</Link>
                     </h2>
                     <p className="text-[13px] text-muted">{s.operator}</p>
                   </div>

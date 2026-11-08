@@ -6,7 +6,9 @@ import { STATIONS } from "./content/stations";
 import { PLATFORMS } from "./content/platforms";
 import HomePage from "./pages/home";
 import AboutPage from "./pages/about";
+import StationsPage from "./pages/stations";
 import InfrastructurePage from "./pages/infrastructure";
+import AccessPage from "./pages/access";
 import { StationPage } from "./pages/station";
 import PlatformsPage from "./pages/platforms";
 import { PlatformPage } from "./pages/platform";
@@ -21,6 +23,7 @@ import ContactPage from "./pages/contact";
 import SitesPage from "./pages/sites";
 import { SiteSheetPage } from "./pages/site-sheet";
 import { CAT, LW_POINTS, sheetKey } from "./content/lw";
+import { baseKey, getLang, keyFor, langOfKey, t } from "./i18n/core";
 
 export interface SiteRoute {
   key: string;
@@ -33,19 +36,22 @@ export interface SiteRoute {
 
 const page = (key: string, title: string, description: string, Page: ComponentType, image?: string): SiteRoute => ({ key, title, description, Page, image, searchable: true });
 
-export const SITE_ROUTES: SiteRoute[] = [
+/** Romanian pages; every one also exists in English under /en/. */
+const RO_ROUTES: SiteRoute[] = [
   page("", "Acasă", "Infrastructura națională de cercetare e-Science pentru biodiversitate și ecosisteme: stații de teren, platforme LTSER și date deschise.", HomePage, photoSrc(HERO_PHOTO, 1200)),
   page("despre", "Despre", "Misiunea, obiectivele și istoricul LifeWatch România, infrastructură de cercetare a Universității din București.", AboutPage),
-  page("infrastructura", "Stațiunile de cercetare", "Cele patru stațiuni de cercetare ale Universității din București: Sinaia, Brăila, Orșova și Sfântu Gheorghe, și accesul pentru cercetători.", InfrastructurePage),
+  page("infrastructura", "Proiectul și infrastructura", "Proiectul LifeWatch România: 11 laboratoare, rețeaua de stații din teren, centrul de date de la Sinaia, platforma web și serviciile de date.", InfrastructurePage),
+  page("acces", "Acces la infrastructură", "Cine răspunde de infrastructura LifeWatch România, cine o poate folosi, procedura, costurile și cererea de acces.", AccessPage),
+  page("statiuni", "Stațiunile de cercetare", "Cele patru stațiuni de cercetare ale Universității din București: Sinaia, Brăila, Orșova și Sfântu Gheorghe, și accesul pentru cercetători.", StationsPage),
   ...STATIONS.map((s) => ({
-    key: `infrastructura/${s.slug}`,
+    key: `statiuni/${s.slug}`,
     title: s.name,
     description: s.summary,
     Page: () => <StationPage station={s} />,
     image: photoSrc(s.photo, 1200),
     searchable: false,
   })),
-  page("situri", "Situri LTER și ICOS", "Siturile de cercetare ecologică pe termen lung din România, înregistrate în DEIMS-SDR, cu stațiile ICOS și stațiile meteo eLTER.", SitesPage),
+  page("situri", "Situri LTER și ICOS", "Toate siturile românești din registrul european DEIMS-SDR, cu stațiile de flux și cu cele 20 de stații climatice LifeWatch.", SitesPage),
   ...LW_POINTS.map((p) => ({
     key: sheetKey(p),
     title: p.ro,
@@ -67,14 +73,21 @@ export const SITE_ROUTES: SiteRoute[] = [
   page("date/documentatie", "Documentație", "Fus orar, pas de timp, limite, valori lipsă și formatele de export ale datelor.", DocsPage),
   page("servicii", "Servicii", "Instrumente web, centrul de date de la Sinaia și formare pentru cercetare.", ServicesPage),
   page("retea", "Rețea și comunitate", "ILTER, LTER-Europe, eLTER și infrastructurile europene de cercetare în care contribuie LifeWatch România.", NetworkPage),
-  page("proiecte", "Proiecte", "Proiectele europene Horizon la care contribuie echipele infrastructurii.", ProjectsPage),
+  page("proiecte", "Proiecte", "Proiectele europene și naționale susținute de infrastructura LifeWatch România și stațiunile unde lucrează fiecare.", ProjectsPage),
   page("intrebari-frecvente", "Întrebări frecvente", "Răspunsuri despre infrastructură, platformele LTSER, accesul la date și explorator.", FaqPage),
   page("contact", "Contact", "Adresele și telefoanele stațiilor de cercetare LifeWatch România.", ContactPage),
 ];
 
-export const findSiteRoute = (key: string) => SITE_ROUTES.find((r) => r.key === key) ?? null;
+export const SITE_ROUTES: SiteRoute[] = [...RO_ROUTES, ...RO_ROUTES.map((r) => ({ ...r, key: keyFor(r.key, "en") }))];
 
-export const documentTitle = (route: SiteRoute | null) => (!route ? "Pagina nu există · LifeWatch România" : route.key ? `${route.title} · LifeWatch România` : "LifeWatch România · Universitatea din București");
+const BY_KEY = new Map(SITE_ROUTES.map((r) => [r.key, r]));
+export const findSiteRoute = (key: string) => BY_KEY.get(key) ?? null;
+/** Romanian routes, for lists (search, sitemap order) that show each page once. */
+export const BASE_ROUTES = RO_ROUTES;
+export { langOfKey };
+
+export const documentTitle = (route: SiteRoute | null) =>
+  !route ? `${t("Pagina nu există")} · ${t("LifeWatch România")}` : baseKey(route.key) ? `${t(route.title)} · ${t("LifeWatch România")}` : `${t("LifeWatch România")} · ${t("Universitatea din București")}`;
 export const NOT_FOUND_DESCRIPTION = "Pagina căutată nu există pe site-ul LifeWatch România.";
 
 const escapeHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -82,17 +95,24 @@ const escapeHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;")
 /** Title, description and Open Graph tags for a prerendered page. */
 export function headTags(route: SiteRoute | null) {
   const title = escapeHtml(documentTitle(route));
-  const description = escapeHtml(route?.description ?? NOT_FOUND_DESCRIPTION);
+  const description = escapeHtml(t(route?.description ?? NOT_FOUND_DESCRIPTION));
+  const en = getLang() === "en";
+  const base = import.meta.env.BASE_URL;
+  const alt = (lang: "ro" | "en") => {
+    const k = keyFor(baseKey(route!.key), lang);
+    return `${base}${k ? `${k}/` : ""}`;
+  };
   const tags = [
     `<title>${title}</title>`,
     `<meta name="description" content="${description}" />`,
     `<meta property="og:type" content="website" />`,
-    `<meta property="og:locale" content="ro_RO" />`,
+    `<meta property="og:locale" content="${en ? "en_GB" : "ro_RO"}" />`,
     `<meta property="og:site_name" content="LifeWatch România" />`,
     `<meta property="og:title" content="${title}" />`,
     `<meta property="og:description" content="${description}" />`,
   ];
   if (route?.image) tags.push(`<meta property="og:image" content="${escapeHtml(route.image)}" />`, `<meta name="twitter:card" content="summary_large_image" />`);
   if (!route) tags.push(`<meta name="robots" content="noindex" />`);
+  else tags.push(`<link rel="alternate" hreflang="ro" href="${alt("ro")}" />`, `<link rel="alternate" hreflang="en" href="${alt("en")}" />`);
   return tags.join("\n    ");
 }

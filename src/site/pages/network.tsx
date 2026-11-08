@@ -53,8 +53,8 @@ export default function NetworkPage() {
           </dl>
           <Link to="proiecte" className="group flex flex-wrap items-center justify-between gap-3 rounded-[14px] border border-border bg-surface px-3.5 py-2.5 shadow-card transition-colors hover:border-border-strong">
             <span className="grid">
-              <span className="text-[14.5px] font-semibold tracking-tight">{PROJECTS.length} proiecte europene Horizon</span>
-              <span className="text-[13px] text-muted">{PROJECTS.map((p) => p.acronym).join(", ")}</span>
+              <span className="text-[14.5px] font-semibold tracking-tight">{PROJECTS.length} proiecte europene și naționale</span>
+              <span className="text-[13px] text-muted">{PROJECTS.map((p) => p.name).join(", ")}</span>
             </span>
             <ArrowRight className="size-4 text-subtle transition-transform group-hover:translate-x-0.5 group-hover:text-accent" strokeWidth={1.75} />
           </Link>

@@ -41,7 +41,7 @@ export default function ServicesPage() {
             eyebrow="Calcul și stocare"
             title="Centrul de date Sinaia"
             lede="Infrastructura de calcul de înaltă performanță, în model cloud, extinde platforma integrată a Universității din București și o leagă de platformele tematice."
-            aside={<ArrowLink to="infrastructura/sinaia">Stațiunea Sinaia</ArrowLink>}
+            aside={<ArrowLink to="statiuni/sinaia">Stațiunea Sinaia</ArrowLink>}
           />
           <ModuleList modules={dataServices} />
         </section>

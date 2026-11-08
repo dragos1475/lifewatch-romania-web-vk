@@ -89,7 +89,7 @@ export function PlatformPage({ platform }: { platform: Platform }) {
                 <dt className="text-[12px] font-medium text-subtle">Stații care deservesc platforma</dt>
                 {stations.map((s) => (
                   <dd key={s.slug}>
-                    <Link to={`infrastructura/${s.slug}`} className="group inline-flex items-center gap-1.5 text-[14px] font-medium">
+                    <Link to={`statiuni/${s.slug}`} className="group inline-flex items-center gap-1.5 text-[14px] font-medium">
                       {s.name}
                       <ArrowRight className="size-3.5 text-subtle transition-transform group-hover:translate-x-0.5 group-hover:text-accent" strokeWidth={1.75} />
                     </Link>

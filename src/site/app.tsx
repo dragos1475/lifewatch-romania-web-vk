@@ -9,6 +9,7 @@ import { PageMotionProvider, sceneForRoute } from "./components/page-motion";
 import { RouterProvider, useRouter } from "./router";
 import { documentTitle, findSiteRoute, NOT_FOUND_DESCRIPTION } from "./routes";
 import NotFoundPage from "./pages/not-found";
+import { langOfKey, setLang, t } from "./i18n/core";
 
 function Pages() {
   const { key, hash } = useRouter();
@@ -18,7 +19,7 @@ function Pages() {
 
   useEffect(() => {
     document.title = documentTitle(route);
-    document.querySelector('meta[name="description"]')?.setAttribute("content", route?.description ?? NOT_FOUND_DESCRIPTION);
+    document.querySelector('meta[name="description"]')?.setAttribute("content", t(route?.description ?? NOT_FOUND_DESCRIPTION));
     if (first.current) {
       first.current = false;
       return;
@@ -46,6 +47,8 @@ function Toasts() {
 }
 
 export function SiteApp({ initialKey }: { initialKey: string }) {
+  // The language follows the first page; switching language loads the other page from scratch.
+  setLang(langOfKey(initialKey));
   return (
     <RouterProvider initialKey={initialKey}>
       <TooltipProvider>

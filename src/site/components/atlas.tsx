@@ -130,7 +130,7 @@ export function Atlas({ highlight, focusStation, showNetworks = true, className,
             </g>
           );
           return interactive ? (
-            <a key={s.slug} href={pageHref(`infrastructura/${s.slug}`)} onClick={(e) => { e.preventDefault(); navigate(pageHref(`infrastructura/${s.slug}`)); }} onMouseEnter={() => setHover(`s:${s.slug}`)} onMouseLeave={() => setHover(null)} aria-label={s.name}>
+            <a key={s.slug} href={pageHref(`statiuni/${s.slug}`)} onClick={(e) => { e.preventDefault(); navigate(pageHref(`statiuni/${s.slug}`)); }} onMouseEnter={() => setHover(`s:${s.slug}`)} onMouseLeave={() => setHover(null)} aria-label={s.name}>
               {label}
             </a>
           ) : (

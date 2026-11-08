@@ -1,4 +1,5 @@
 // Main menu (header mega menu and mobile sheet) and the explorer's modules, shared with the search.
+import { baseKey } from "./i18n/core";
 import { Database, RadioTower, Satellite, Users, type LucideIcon } from "lucide-react";
 
 export interface MenuLink {
@@ -24,12 +25,14 @@ export const MENUS: Menu[] = [
     id: "despre",
     label: "Despre",
     desc: "Cine suntem, ce construim și cum ne legăm de infrastructurile europene.",
-    match: ["despre", "proiecte", "intrebari-frecvente", "contact"],
+    match: ["despre", "infrastructura", "acces", "proiecte", "intrebari-frecvente", "contact"],
     links: [
       { label: "Despre LifeWatch România", note: "Misiune, obiective și istoric", to: "despre" },
-      { label: "Arhitectura infrastructurii", note: "De la senzori la portal", to: "", hash: "arhitectura" },
+      { label: "Proiectul și infrastructura", note: "Laboratoare, rețea de teren, centru de date", to: "infrastructura" },
+      { label: "Acces la infrastructură", note: "Cine răspunde, cum se face cererea", to: "acces" },
+      { label: "Proiecte susținute", note: "Unde lucrează fiecare proiect", to: "proiecte" },
+      { label: "Platforma web", note: "Arhitectură, servicii OGC și STAC", to: "infrastructura", hash: "platforma" },
       { label: "LifeWatch, eLTER și ICOS", note: "Cum se leagă infrastructurile", to: "", hash: "icos-elter" },
-      { label: "Ce construim în continuare", note: "Idei și direcții", to: "", hash: "idei" },
       { label: "Întrebări frecvente", note: "Infrastructură, date, explorator", to: "intrebari-frecvente" },
       { label: "Contact", note: "Adresele și telefoanele stațiunilor", to: "contact" },
     ],
@@ -38,14 +41,15 @@ export const MENUS: Menu[] = [
     id: "statiuni",
     label: "Stațiuni",
     desc: "Patru stațiuni ale Universității din București, de la Bucegi la Marea Neagră.",
-    match: ["infrastructura"],
+    match: ["statiuni"],
     links: [
-      { label: "Toate stațiunile", note: "Prezentare, hartă, acces", to: "infrastructura" },
-      { label: "Sinaia", note: "Stațiunea Zoologică · din 1922", to: "infrastructura/sinaia" },
-      { label: "Brăila", note: "Lunca Dunării · din 1955", to: "infrastructura/braila" },
-      { label: "Orșova", note: "Defileul Dunării · din 1964", to: "infrastructura/orsova" },
-      { label: "Sfântu Gheorghe", note: "Delta și litoralul · din 2002", to: "infrastructura/sfantu-gheorghe" },
-      { label: "Acces pentru cercetători", note: "Cum lucrați la stațiunile noastre", to: "infrastructura", hash: "acces" },
+      { label: "Toate stațiunile", note: "Prezentare, galerii, date", to: "statiuni" },
+      { label: "Sinaia", note: "Stațiunea Zoologică · din 1922", to: "statiuni/sinaia" },
+      { label: "Brăila", note: "Lunca Dunării · din 1955", to: "statiuni/braila" },
+      { label: "Orșova", note: "Defileul Dunării · din 1964", to: "statiuni/orsova" },
+      { label: "Sfântu Gheorghe", note: "Delta și litoralul · din 2002", to: "statiuni/sfantu-gheorghe" },
+      { label: "Acces pentru cercetători", note: "Stațiuni, echipamente, centrul de date", to: "acces" },
+      { label: "Colaboratori la Brăila", note: "SCDA Brăila și living lab-ul ENoLL", to: "statiuni/braila", hash: "colaboratori" },
     ],
   },
   {
@@ -56,7 +60,7 @@ export const MENUS: Menu[] = [
     links: [
       { label: "Siturile noastre", note: "Operate de Universitatea din București", to: "situri", hash: "noastre" },
       { label: "Rețeaua LTER România", note: "Toate siturile din DEIMS", to: "situri", hash: "retea" },
-      { label: "Stațiile ICOS", note: "Fluxuri de carbon, apă și energie", to: "situri", hash: "icos" },
+      { label: "Stațiile de flux", note: "Fluxuri de carbon, apă și energie", to: "situri", hash: "icos" },
       { label: "Platformele LTSER", note: "Șase platforme socio-ecologice", to: "platforme" },
       { label: "Harta zonelor", note: "Toate punctele pe o hartă", to: "", hash: "harta" },
     ],
@@ -68,11 +72,12 @@ export const MENUS: Menu[] = [
     match: ["date", "servicii"],
     links: [
       { label: "Exploratorul LTSER", note: "Teledetecție, rețele de stații, indicatori", href: "explorer" },
-      { label: "Fișele siturilor", note: "Habitate, climă, biodiversitate, API", to: "situri/insulele-brailei" },
-      { label: "Instrumente", note: "Habitate, climă, iNaturalist, GBIF", to: "", hash: "instrumente" },
+      { label: "Fișele siturilor", note: "Hartă, fișe de sit, instrumente", to: "situri/insulele-brailei" },
+      { label: "Geoportalul LifeWatch", note: "Hărți interactive și serii de timp", href: "https://map.lifewatch.ro/" },
+      { label: "LTSER Explorer", note: "Portalul original, pe HTTP", href: "http://193.226.53.30/ltser/" },
+      { label: "Stațiile din teren", note: "20 de stații climatice și 5 de flux", to: "infrastructura", hash: "retea-teren" },
       { label: "Catalog de date", note: "Seturile de date ale infrastructurii", to: "date" },
       { label: "API de acces", note: "Rute și exemple de cereri", to: "date/api" },
-      { label: "Documentație", note: "Fus orar, pas de timp, formate", to: "date/documentatie" },
       { label: "Servicii", note: "Centrul de date și instrumente web", to: "servicii" },
     ],
   },
@@ -83,16 +88,18 @@ export const MENUS: Menu[] = [
     match: ["retea"],
     links: [
       { label: "Rețea și comunitate", note: "ILTER, LTER-Europe, eLTER", to: "retea" },
-      { label: "Proiectele noastre", note: "MARCO-BOLO, Restore4Life și altele", to: "proiecte" },
+      { label: "Proiectele noastre", note: "Restore4Life, RESTORE4Cs, CROSSEU și altele", to: "proiecte" },
       { label: "LifeWatch ERIC", note: "e-Știință pentru biodiversitate", href: "https://www.lifewatch.eu/" },
       { label: "eLTER RI", note: "Cercetare ecologică pe termen lung", href: "https://elter-ri.eu/" },
       { label: "ICOS", note: "Observarea carbonului", href: "https://www.icos-cp.eu/" },
       { label: "DANUBIUS-RI", note: "Sisteme fluviu–mare", href: "https://www.danubius-ri.eu/" },
+      { label: "MIRRI-ERIC", note: "Resurse microbiene", href: "https://www.mirri.org/" },
+      { label: "ENoLL", note: "Living lab-ul de la Brăila", href: "https://enoll.org/member/agrodatasmart/" },
     ],
   },
 ];
 
-export const activeMenu = (key: string) => MENUS.find((m) => m.match.includes(key.split("/")[0]))?.id ?? null;
+export const activeMenu = (key: string) => MENUS.find((m) => m.match.includes(baseKey(key).split("/")[0]))?.id ?? null;
 
 export interface ExplorerModule {
   id: string;

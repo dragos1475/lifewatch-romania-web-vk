@@ -70,12 +70,12 @@ export interface Milestone {
 }
 
 export const TIMELINE: Milestone[] = [
-  { year: "1922", title: "Stațiunea Sinaia", body: "Profesorul A. Popovici-Bâznoșeanu înființează la Sinaia o bază pentru practica de teren a studenților la biologie.", link: "infrastructura/sinaia" },
+  { year: "1922", title: "Stațiunea Sinaia", body: "Profesorul A. Popovici-Bâznoșeanu înființează la Sinaia o bază pentru practica de teren a studenților la biologie.", link: "statiuni/sinaia" },
   { year: "1951", title: "Cercetători permanenți la Sinaia", body: "Stațiunea primește personal propriu. Până în 1989 publică 386 de lucrări științifice originale." },
-  { year: "1955", title: "Stația hidrobiologică Brăila", body: "Începe cercetarea ecosistemelor Dunării de Jos, sub conducerea academicianului Nicolae Botnariuc.", link: "infrastructura/braila" },
-  { year: "1964", title: "Stațiunea Orșova", body: "Facultatea de Geografie înființează stațiunea de cercetare și practică de la Orșova.", link: "infrastructura/orsova" },
+  { year: "1955", title: "Stația hidrobiologică Brăila", body: "Începe cercetarea ecosistemelor Dunării de Jos, sub conducerea academicianului Nicolae Botnariuc.", link: "statiuni/braila" },
+  { year: "1964", title: "Stațiunea Orșova", body: "Facultatea de Geografie înființează stațiunea de cercetare și practică de la Orșova.", link: "statiuni/orsova" },
   { year: "2001", title: "România intră în ILTER", body: "Cercetarea ecologică românească pe termen lung se conectează la rețeaua internațională." },
-  { year: "2002", title: "Stația Sfântu Gheorghe", body: "Grupul de Cercetări Costiere deschide o bază în Delta Dunării, la gura brațului Sfântu Gheorghe.", link: "infrastructura/sfantu-gheorghe" },
+  { year: "2002", title: "Stația Sfântu Gheorghe", body: "Grupul de Cercetări Costiere deschide o bază în Delta Dunării, la gura brațului Sfântu Gheorghe.", link: "statiuni/sfantu-gheorghe" },
   { year: "2003", title: "Bucegi-Piatra Craiului, sit ILTER", body: "Platforma devine sit ILTER, iar din 2008 face parte din LTER-Europe.", link: "platforme/bucegi-piatra-craiului" },
   { year: "2004", title: "Rețeaua ALTER-Net", body: "Echipele românești participă activ la rețeaua europeană de cercetare a biodiversității." },
   { year: "2007", title: "Conceptul LTSER", body: "LTER-Europe propune platformele socio-ecologice. În același an începe cercetarea pe termen lung în Rodna-Călimani.", link: "platforme" },

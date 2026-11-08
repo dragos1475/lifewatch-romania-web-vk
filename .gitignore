@@ -20,3 +20,6 @@ __v0_jsx-dev-runtime.ts
 # System and logs
 .DS_Store
 *.log
+
+# Material received from colleagues (self-contained HTML, ~175 MB); imported by scripts/import-lw-data.mjs
+/Primit de la colegi*

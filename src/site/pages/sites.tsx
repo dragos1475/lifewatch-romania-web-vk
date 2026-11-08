@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CAT, fmt, LW_POINTS, sheetKey, siteCode, type LwPoint } from "../content/lw";
+import { CAT, fmt, LTSER_URL, LW_POINTS, NETS, sheetKey, siteCode, type LwPoint } from "../content/lw";
 import { Link } from "../router";
 import { Band, Container, SectionHeader } from "../components/primitives";
 import { LwMap } from "../components/lw-map";
@@ -20,8 +20,8 @@ const FILTERS: [Filter, string][] = [
   ["ours", "Ale noastre"],
   ["ltser", "Platforme LTSER"],
   ["lter", "Situri LTER"],
-  ["icos", "ICOS"],
-  ["meteo", "Meteo"],
+  ["icos", "Flux"],
+  ["meteo", "Stații climatice în DEIMS"],
 ];
 type Col = "ro" | "cat" | "code" | "established" | "area_ha" | "elev" | "species" | "n2k";
 const COLS: [Col, string][] = [
@@ -123,7 +123,7 @@ export default function SitesPage() {
           <div className="grid gap-3">
             <p className="text-[12.5px] font-semibold tracking-[0.1em] text-lime uppercase">Rețeaua LTER România</p>
             <h1 className="font-display text-[34px] leading-[1.08] font-bold tracking-[-0.02em] sm:text-[44px] xl:text-[52px]">Situri de cercetare pe termen lung</h1>
-            <p className="max-w-[78ch] text-[16px] leading-[1.65] text-[#CFDCE2] sm:text-[17px]">Toate siturile românești din registrul european DEIMS-SDR, cu stațiile ICOS și stațiile meteo eLTER. Siturile operate de Universitatea din București sunt marcate separat.</p>
+            <p className="max-w-[78ch] text-[16px] leading-[1.65] text-[#CFDCE2] sm:text-[17px]">Toate siturile românești din registrul european DEIMS-SDR, cu stațiile de flux și cu cele 20 de stații climatice LifeWatch. Siturile operate de Universitatea din București sunt marcate separat.</p>
           </div>
           <LwMap points={LW_POINTS.filter((p) => p.cat !== "statiune")} label="Harta siturilor LTER și a stațiilor ICOS" className="h-[300px] rounded-xl border border-[#2C5A6E]" />
         </Container>
@@ -165,7 +165,7 @@ export default function SitesPage() {
 
       <Band id="icos">
         <Container>
-          <SectionHeader eyebrow="ICOS · Integrated Carbon Observation System" title="Stațiile de flux ecosistemic" lede="Trei stații cu turnuri de covarianță turbulentă măsoară schimburile de dioxid de carbon, apă și energie dintre ecosisteme și atmosferă: terenuri agricole pe Insula Mare a Brăilei, Parcul Natural Comana din bazinul Neajlovului și zone umede la Enisala, în Rezervația Biosferei Delta Dunării." />
+          <SectionHeader eyebrow="ICOS · Integrated Carbon Observation System" title="Stațiile de flux ecosistemic" lede="Proiectul LifeWatch România a instalat cinci stații de flux, iar una dintre ele, într-o zonă umedă, măsoară și metanul. Trei sunt înregistrate în DEIMS ca stații ICOS. Turnurile lor de covarianță turbulentă măsoară schimburile de dioxid de carbon, apă și energie dintre ecosisteme și atmosferă pe terenurile agricole de pe Insula Mare a Brăilei, în Parcul Natural Comana din bazinul Neajlovului și în zonele umede de la Enisala, în Rezervația Biosferei Delta Dunării. Celelalte două, codificate POLI și BV, apar în LTSER Explorer." />
           <div className="mt-8 grid gap-5 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
             {icos.map((p) => (
               <Card key={p.key}>
@@ -174,24 +174,32 @@ export default function SitesPage() {
                     <CatTag cat="icos" />
                   </div>
                   <CardTitle>{p.ro}</CardTitle>
-                  {p.abstract ? <CardText>{p.abstract}</CardText> : null}
-                  {p.observed?.length ? (
-                    <p className="text-[13px] text-subtle">
-                      <b className="text-foreground">Variabile:</b> {p.observed.join(", ")}
-                    </p>
-                  ) : null}
+                  <CardText>{p.abstract || (p.ltser?.code === "POLI" ? "Turn de covarianță turbulentă din rețeaua LifeWatch, la Polizești, cu o sondă cu neutroni cosmici pentru umiditatea solului." : "Turn de covarianță turbulentă din rețeaua LifeWatch, amplasat lângă stația climatică BV-Brv.")}</CardText>
+                  <p className="text-[13px] text-subtle">
+                    <b className="text-foreground">Variabile:</b> {p.observed?.length ? p.observed.join(", ") : `${NETS.ec.d}.`}
+                  </p>
+                  {p.ltser ? <p className="text-[13px]">Cod în LTSER Explorer: {p.ltser.code}</p> : null}
                   <div className="mt-auto flex flex-wrap gap-2 pt-1">
                     <Button asChild variant="dark" size="site-sm">
                       <Link to={sheetKey(p)}>Fișa stației</Link>
                     </Button>
+                    {p.deims ? (
+                      <>
+                        <Button asChild variant="outline" size="site-sm">
+                          <a href={p.deims} target="_blank" rel="noreferrer">
+                            DEIMS <ArrowUpRight />
+                          </a>
+                        </Button>
+                        <Button asChild variant="outline" size="site-sm">
+                          <a href="https://data.icos-cp.eu/portal/" target="_blank" rel="noreferrer">
+                            Carbon Portal <ArrowUpRight />
+                          </a>
+                        </Button>
+                      </>
+                    ) : null}
                     <Button asChild variant="outline" size="site-sm">
-                      <a href={p.deims} target="_blank" rel="noreferrer">
-                        DEIMS <ArrowUpRight />
-                      </a>
-                    </Button>
-                    <Button asChild variant="outline" size="site-sm">
-                      <a href="https://data.icos-cp.eu/portal/" target="_blank" rel="noreferrer">
-                        Carbon Portal <ArrowUpRight />
+                      <a href={LTSER_URL} target="_blank" rel="noreferrer">
+                        LTSER Explorer <ArrowUpRight />
                       </a>
                     </Button>
                   </div>
@@ -200,7 +208,11 @@ export default function SitesPage() {
             ))}
           </div>
           <Note className="mt-6">
-            <b>Unde sunt datele.</b> Metadatele stațiilor sunt în DEIMS-SDR. Datele de flux validate se publică prin ICOS Carbon Portal, unde se pot căuta după stație, variabilă și perioadă.
+            <b>Unde sunt datele.</b> Metadatele stațiilor sunt în DEIMS-SDR. Datele de flux validate se publică prin ICOS Carbon Portal, unde se pot căuta după stație, variabilă și perioadă. Seriile semiorare ale tuturor celor cinci stații se văd în{" "}
+            <a href={LTSER_URL} target="_blank" rel="noreferrer" className="font-semibold text-[#2f7d4f] underline dark:text-accent">
+              LTSER Explorer ↗
+            </a>
+            .
           </Note>
         </Container>
       </Band>

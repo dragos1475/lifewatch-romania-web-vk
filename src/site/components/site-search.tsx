@@ -12,7 +12,7 @@ import { EXPLORER_MODULES } from "../nav";
 import { CAT, LW_POINTS, sheetKey } from "../content/lw";
 import { CatShape } from "./lw-shapes";
 import { explorerHref, pageHref, useRouter } from "../router";
-import { SITE_ROUTES } from "../routes";
+import { BASE_ROUTES as SITE_ROUTES } from "../routes";
 
 const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "");
 const searchable = (...parts: string[]) => {
@@ -68,7 +68,7 @@ export function SiteSearch({ open, onOpenChange }: { open: boolean; onOpenChange
 
             <Command.Group heading="Stații de cercetare" className={groupClass}>
               {STATIONS.map((s) => (
-                <Command.Item key={s.slug} value={searchable(s.name, s.county, s.setting, ...s.focus)} onSelect={() => go(`infrastructura/${s.slug}`)} className={itemClass}>
+                <Command.Item key={s.slug} value={searchable(s.name, s.county, s.setting, ...s.focus)} onSelect={() => go(`statiuni/${s.slug}`)} className={itemClass}>
                   <MapPin strokeWidth={1.75} />
                   <span className="flex-1 truncate">{s.name}</span>
                   <span className="tabular text-[11px] text-subtle">{s.founded}</span>

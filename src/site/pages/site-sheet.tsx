@@ -18,7 +18,12 @@ import {
   relatedOf,
   sheetGallery,
   sheetKey,
-  SNAPSHOT_LABEL,
+  snapshotLabel,
+  commonName,
+  customPoint,
+  LTSER_URL,
+  NETS,
+  placeText,
   STATION_SLUG,
   type LwClimate,
   type LwN2k,
@@ -32,6 +37,7 @@ import { CatShape } from "../components/lw-shapes";
 import { Bars, Climograph, ClimographLegend, MONTHS, YearBars } from "../components/lw-charts";
 import { Gallery, useLightbox } from "../components/lw-gallery";
 import { ChipLink, Chips, H3, KeyValues, Note, PointTags, Tag } from "../components/lw-ui";
+import { isEn } from "../i18n/core";
 
 const ORDER = ["statiune", "ltser", "icos", "lter", "meteo", "icos-cat"];
 const fold = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
@@ -63,7 +69,7 @@ async function live<T>(url: string, ms = 12000): Promise<T | null> {
 }
 
 function Snap() {
-  return <span className="text-[12px] font-semibold text-subtle">{SNAPSHOT_LABEL}</span>;
+  return <span className="text-[12px] font-semibold text-subtle">{snapshotLabel()}</span>;
 }
 function Live() {
   return (
@@ -165,6 +171,22 @@ function MobilePicker({ current }: { current: LwPoint }) {
 
 /* ---------------------------------------------------------------- Prezentare */
 function Overview({ p }: { p: LwPoint }) {
+  if (p.custom) {
+    return (
+      <>
+        <p className="mb-5 max-w-[820px] text-[17px] leading-[1.65] text-muted">Ați ales un punct oarecare de pe hartă. Fila Climă încarcă climatologia NASA POWER pentru acest loc, fila Biodiversitate încarcă observațiile iNaturalist și GBIF, iar fila Habitate caută siturile Natura 2000 din jur.</p>
+        <KeyValues
+          className="mb-3"
+          rows={[
+            ["Latitudine", `${p.lat.toFixed(4)}°`],
+            ["Longitudine", `${p.lon.toFixed(4)}°`],
+            ["Zonă analizată", "≈ 11 × 11 km în jurul punctului"],
+          ]}
+        />
+        <p className="text-[13px] text-subtle">Apăsați pe un marcaj ca să reveniți la un sit documentat.</p>
+      </>
+    );
+  }
   const imgs = sheetGallery(p);
   const box = useLightbox(imgs);
   const station = STATION_SLUG[p.id];
@@ -178,13 +200,17 @@ function Overview({ p }: { p: LwPoint }) {
           {box.node}
         </>
       ) : null}
-      {p.text ? <p className="mb-5 max-w-[820px] text-[17px] leading-[1.65] text-muted">{p.text}</p> : null}
+      {p.text ? (
+        <p className="mb-5 max-w-[820px] text-[17px] leading-[1.65] text-muted">{p.text}</p>
+      ) : p.ltser ? (
+        <p className="mb-5 max-w-[820px] text-[17px] leading-[1.65] text-muted">{`${p.cat === "icos" ? "Stație de flux ecosistemic" : "Stație climatică"} din rețeaua de teren LifeWatch România, cu codul ${p.ltser.code}. Măsurătorile ei se văd în LTSER Explorer, iar aici găsiți clima de referință, habitatele și biodiversitatea din jurul ei.`}</p>
+      ) : null}
       {station || platform ? (
         <Note className="mb-5">
           {station ? (
             <>
               <b>Pagina stațiunii.</b> Laboratoare, echipamente, contact și galeria completă:{" "}
-              <Link to={`infrastructura/${station}`} className="font-semibold text-[#2f7d4f] underline dark:text-accent">deschide pagina stațiunii</Link>.
+              <Link to={`statiuni/${station}`} className="font-semibold text-[#2f7d4f] underline dark:text-accent">deschide pagina stațiunii</Link>.
             </>
           ) : (
             <>
@@ -277,6 +303,36 @@ function N2kTable({ list }: { list: LwN2k[] }) {
   );
 }
 
+/** Natura 2000 sites intersecting the analysis box, asked live from the EEA service. */
+function LiveN2k({ p }: { p: LwPoint }) {
+  const [list, setList] = useState<LwN2k[] | null | "fail">(null);
+  useEffect(() => {
+    let gone = false;
+    const [s, w, n, e] = p.aoi;
+    const base = "https://bio.discomap.eea.europa.eu/arcgis/rest/services/ProtectedSites/Natura2000Sites/MapServer/";
+    const qs = `query?geometry=${[w, s, e, n].join(",")}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=SITECODE,SITENAME,Area_ha&returnGeometry=false&f=json`;
+    type R = { features?: { attributes: { SITECODE: string; SITENAME: string; Area_ha?: number } }[] } | null;
+    Promise.all([live<R>(`${base}0/${qs}`), live<R>(`${base}1/${qs}`)]).then(([a, b]) => {
+      if (gone) return;
+      if (!a && !b) return setList("fail");
+      const found = new Map<string, LwN2k>();
+      [a, b].forEach((r, i) => (r?.features ?? []).forEach((f) => found.set(f.attributes.SITECODE, { code: f.attributes.SITECODE, name: f.attributes.SITENAME, ha: Math.round(f.attributes.Area_ha ?? 0), type: i ? "SPA" : "SCI" })));
+      setList([...found.values()].sort((x, y) => x.code.localeCompare(y.code)));
+    });
+    return () => {
+      gone = true;
+    };
+  }, [p]);
+  if (list === null) return <p className="text-subtle">Se caută siturile Natura 2000…</p>;
+  if (list === "fail") return <Offline what="lista siturilor Natura 2000" />;
+  return (
+    <>
+      <Live />
+      <N2kTable list={list} />
+    </>
+  );
+}
+
 function Habitats({ p, eea, setEea, eeaFail }: { p: LwPoint; eea: string[]; setEea: (k: string[]) => void; eeaFail: string | null }) {
   const texts: [keyof LwPoint, string][] = [
     ["hydrology", "Hidrologie"],
@@ -321,8 +377,14 @@ function Habitats({ p, eea, setEea, eeaFail }: { p: LwPoint; eea: string[]; setE
         </Section>
       ) : null}
       <Section title="Situri Natura 2000 care se suprapun cu zona">
-        <Snap />
-        <N2kTable list={p.n2k ?? []} />
+        {p.n2k ? (
+          <>
+            <Snap />
+            <N2kTable list={p.n2k} />
+          </>
+        ) : (
+          <LiveN2k p={p} />
+        )}
       </Section>
       {texts.map(([k, label]) =>
         p[k] ? (
@@ -390,11 +452,17 @@ function Climate({ p }: { p: LwPoint }) {
     setSeries({ shifted: Object.fromEntries(ys.map((y) => [y, +(ann[y] - min + 0.2).toFixed(2)])), slope, mean: ym, min });
   };
 
+  // Places without a snapshot (picked on the map) load the climatology at once.
+  useEffect(() => {
+    if (!p.power) void refresh();
+  }, [p]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const c = pw?.data;
   const cell = "border-b border-border px-2 py-1.5 text-right tabular";
   return (
     <>
       {failed ? <Offline what={failed} /> : null}
+      {!c && loading === "clim" ? <p className="text-subtle">Se încarcă climatologia NASA POWER…</p> : null}
       {c ? (
         <>
           <KeyValues
@@ -488,12 +556,12 @@ function SpeciesGrid({ list }: { list: LiveSpecies[] }) {
         return (
           <a key={t.taxon} href={`https://www.inaturalist.org/taxa/${t.taxon}`} target="_blank" rel="noreferrer" className="flex flex-col overflow-hidden rounded-[10px] border border-border bg-surface hover:border-accent">
             {img ? (
-              <img loading="lazy" src={img} alt={t.common || t.name} title={t.credit ?? ""} className="aspect-square w-full bg-surface-3 object-cover" />
+              <img loading="lazy" src={img} alt={commonName(t) || t.name} title={t.credit ?? ""} className="aspect-square w-full bg-surface-3 object-cover" />
             ) : (
               <span className="grid aspect-square place-items-center bg-surface-3 p-2 text-center text-[12px] text-subtle">{t.group || "Fără fotografie liberă"}</span>
             )}
             <div className="px-2.5 py-2 text-[13px] leading-[1.35]">
-              {t.common || t.name}
+              {commonName(t) || t.name}
               <i className="block text-[12px] text-subtle">{t.name}</i>
               <em className="font-bold text-[#2f7d4f] not-italic dark:text-accent">{fmt(t.count)} obs.</em>
               {t.status ? <Tag tone="warn" className="ml-1.5 px-1.5 py-0 text-[11px]">{t.status.toUpperCase()}</Tag> : null}
@@ -522,10 +590,10 @@ function Biodiversity({ p }: { p: LwPoint }) {
     const q = `${bboxQuery(p)}&verifiable=true`;
     const api = "https://api.inaturalist.org/v1/observations";
     const [s, ic, h, r, g] = await Promise.all([
-      live<{ total_results: number; results: { count: number; taxon: { id: number; name: string; preferred_common_name?: string; default_photo?: { medium_url?: string; url?: string; attribution?: string }; iconic_taxon_name?: string; conservation_status?: { status?: string } } }[] }>(`${api}/species_counts?${q}&per_page=24&locale=ro`),
-      live<{ results: { count: number; taxon: { name: string; preferred_common_name?: string } }[] }>(`${api}/iconic_taxa_species_counts?${q}&locale=ro`),
+      live<{ total_results: number; results: { count: number; taxon: { id: number; name: string; preferred_common_name?: string; default_photo?: { medium_url?: string; url?: string; attribution?: string }; iconic_taxon_name?: string; conservation_status?: { status?: string } } }[] }>(`${api}/species_counts?${q}&per_page=24&locale=${isEn() ? "en" : "ro"}`),
+      live<{ results: { count: number; taxon: { name: string; preferred_common_name?: string } }[] }>(`${api}/iconic_taxa_species_counts?${q}&locale=${isEn() ? "en" : "ro"}`),
       live<{ results: { year: Record<string, number> } }>(`${api}/histogram?${q}&interval=year&date_field=observed`),
-      live<{ total_results: number; results: { id: number; observed_on?: string; user?: { login?: string }; photos?: { url?: string }[]; taxon?: { name?: string; preferred_common_name?: string } }[] }>(`${api}?${q}&per_page=12&order_by=observed_on&photos=true&locale=ro`),
+      live<{ total_results: number; results: { id: number; observed_on?: string; user?: { login?: string }; photos?: { url?: string }[]; taxon?: { name?: string; preferred_common_name?: string } }[] }>(`${api}?${q}&per_page=12&order_by=observed_on&photos=true&locale=${isEn() ? "en" : "ro"}`),
       live<{ count: number }>(`https://api.gbif.org/v1/occurrence/search?limit=0&decimalLatitude=${p.aoi[0]},${p.aoi[2]}&decimalLongitude=${p.aoi[1]},${p.aoi[3]}`),
     ]);
     setLoading(false);
@@ -535,6 +603,7 @@ function Biodiversity({ p }: { p: LwPoint }) {
       s.results.map((x) => ({
         name: x.taxon.name,
         common: x.taxon.preferred_common_name,
+        common_en: x.taxon.preferred_common_name,
         count: x.count,
         taxon: x.taxon.id,
         photo: x.taxon.default_photo?.medium_url || x.taxon.default_photo?.url,
@@ -551,10 +620,14 @@ function Biodiversity({ p }: { p: LwPoint }) {
       );
   };
 
+  useEffect(() => {
+    if (!p.inat) void refresh();
+  }, [p]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <>
       {failed ? <Offline what="datele iNaturalist" /> : null}
-      {stats.live ? <Live /> : <Snap />}
+      {stats.live ? <Live /> : loading && !p.inat ? <p className="text-subtle">Se încarcă datele iNaturalist și GBIF…</p> : <Snap />}
       <KeyValues
         className="mt-2"
         rows={[
@@ -616,13 +689,49 @@ function Biodiversity({ p }: { p: LwPoint }) {
 }
 
 /* ---------------------------------------------------------------- eLTER și ICOS */
+function SensorNetwork({ p }: { p: LwPoint }) {
+  const l = p.ltser!;
+  const place = placeText(p);
+  return (
+    <div className="mb-7">
+      <H3>Rețeaua de senzori LifeWatch</H3>
+      <p className="mb-3 max-w-[820px] text-[15.5px] leading-[1.6] text-muted">{`${place ? `Stația se află la ${place}. ` : ""}În LTSER Explorer apare cu codul ${l.code}, iar instrumentele instalate aici sunt următoarele.`}</p>
+      <div className="mb-4 overflow-x-auto rounded-[10px] border border-border">
+        <table className="w-full border-collapse text-[14px]">
+          <tbody>
+            {l.nets.map((n) => (
+              <tr key={n} className="align-top">
+                <td className="border-b border-border px-2.5 py-2 font-semibold whitespace-nowrap">{NETS[n].t}</td>
+                <td className="border-b border-border px-2.5 py-2 text-muted">{NETS[n].d}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="mb-3 flex flex-wrap gap-2">
+        <Button asChild variant="dark" size="site-sm">
+          <a href={LTSER_URL} target="_blank" rel="noreferrer">
+            Deschide LTSER Explorer <ArrowUpRight />
+          </a>
+        </Button>
+        <Button asChild variant="outline" size="site-sm">
+          <Link to="infrastructura" hash="ltser-explorer">Cum se folosește</Link>
+        </Button>
+      </div>
+      <p className="text-[13px] text-subtle">{`În portal, alegeți fila Lifewatch networks, apoi rețeaua și stația ${l.code}. Fila Data arată graficele, iar pentru stațiile meteo și imaginile camerei.`}</p>
+    </div>
+  );
+}
+
 function Networks({ p }: { p: LwPoint }) {
   const rel = relatedOf(p);
-  const has = p.cat === "icos" || p.cat === "icos-cat" || p.cat === "statiune" || p.networks?.length || p.observed?.length || p.deims;
+  if (p.custom) return <p className="text-subtle">Punctele libere nu au înregistrări în rețelele eLTER sau ICOS. Alegeți un sit din listă.</p>;
+  const has = p.cat === "icos" || p.cat === "icos-cat" || p.cat === "statiune" || p.networks?.length || p.observed?.length || p.deims || p.ltser;
   if (!has) return <p className="text-subtle">Fără informații de rețea pentru acest loc.</p>;
   return (
     <>
-      {p.cat === "icos" ? (
+      {p.ltser ? <SensorNetwork p={p} /> : null}
+      {p.cat === "icos" && p.deims ? (
         <Note className="mb-5">
           <b>Stație de flux ecosistemic.</b> Turnul de covarianță turbulentă măsoară schimburile de CO₂, vapori de apă și energie dintre ecosistem și atmosferă. Datele validate se publică prin ICOS Carbon Portal.
         </Note>
@@ -745,7 +854,7 @@ function DataApi({ p }: { p: LwPoint }) {
           Copiază JSON
         </Button>
         <Button asChild variant="outline" size="site-sm">
-          <a href={url ?? undefined} download={`${p.slug}.json`}>Descarcă JSON</a>
+          <a href={url ?? undefined} download={`${p.custom ? `punct-${p.lat}-${p.lon}` : p.slug}.json`}>Descarcă JSON</a>
         </Button>
         <span role="status" className="text-[13px] text-subtle">{msg}</span>
       </div>
@@ -758,13 +867,27 @@ function DataApi({ p }: { p: LwPoint }) {
         </div>
       ))}
       <p className="mt-3 text-[13px] text-subtle">Domeniul API-ului LifeWatch România se completează după publicarea serviciului.</p>
+      {p.ltser ? (
+        <>
+          <H3 className="mt-7">Măsurătorile din teren</H3>
+          <p className="mb-3 max-w-[820px] text-[15px] leading-[1.6] text-muted">{`Seriile de timp ale stației ${p.ltser.code} se consultă și se descarcă din LTSER Explorer, fila Lifewatch networks. Portalul folosește HTTP, așa că unele browsere afișează un avertisment la deschidere.`}</p>
+          <Button asChild variant="dark" size="site-sm">
+            <a href={LTSER_URL} target="_blank" rel="noreferrer">
+              Deschide LTSER Explorer <ArrowUpRight />
+            </a>
+          </Button>
+        </>
+      ) : null}
     </>
   );
 }
 
 /* ---------------------------------------------------------------- Page */
-export function SiteSheetPage({ point: p }: { point: LwPoint }) {
+export function SiteSheetPage({ point }: { point: LwPoint }) {
   const { navigate } = useRouter();
+  // A place picked on the map replaces the sheet until a marker or the list is used again.
+  const [custom, setCustom] = useState<LwPoint | null>(null);
+  const p = custom ?? point;
   const [tab, setTab] = useState<TabId>(lastTab);
   const [base, setBase] = useState<BaseName>("osm");
   const [eea, setEea] = useState<string[]>([]);
@@ -785,27 +908,29 @@ export function SiteSheetPage({ point: p }: { point: LwPoint }) {
 
   return (
     <div className="grid lg:grid-cols-[300px_minmax(0,1fr)]">
-      <SiteList current={p} />
+      <SiteList current={point} />
       <div className="min-w-0">
-        <MobilePicker current={p} />
+        <MobilePicker current={point} />
         <div className="relative">
           <LwMap
             points={LW_POINTS}
             selected={p}
             base={base}
             eea={eea}
-            onSelect={(x) => x.key !== p.key && navigate(pageHref(sheetKey(x)))}
+            onSelect={(x) => (x.key === point.key ? setCustom(null) : navigate(pageHref(sheetKey(x))))}
+            onMapClick={(lat, lon) => setCustom(customPoint(lat, lon))}
             onEea={(k, ok) => setEeaFail(ok ? null : EEA[k].label)}
             scrollZoom="always"
             label={`Harta: ${p.ro}`}
             className="h-[340px] sm:h-[420px]"
           />
-          <BaseSwitch value={base} onChange={setBase} floating className="absolute top-2.5 left-2.5 z-[500]" />
+          <BaseSwitch value={base} onChange={setBase} floating thematic className="absolute top-2.5 right-14 left-2.5 z-[500]" />
         </div>
+        <p className="border-b border-border px-5 py-2 text-[13px] text-subtle sm:px-7">Apăsați oriunde pe hartă ca să analizați un punct ales de dvs.: climă, biodiversitate și situri Natura 2000 din jur.</p>
         <Container className="!max-w-none !px-5 sm:!px-7">
           <div className="flex flex-wrap items-start justify-between gap-3.5 pt-5">
             <div className="grid gap-1.5">
-              <PointTags p={p} ours />
+              {p.custom ? <Tag className="w-fit">Punct liber</Tag> : <PointTags p={p} ours />}
               <h1 className="mt-1 font-display text-[28px] leading-[1.15] font-bold sm:text-[30px]">{p.ro}</h1>
               <p className="text-[13px] text-subtle">
                 {p.fullName && p.fullName !== p.ro ? `${p.fullName} · ` : ""}
@@ -813,9 +938,21 @@ export function SiteSheetPage({ point: p }: { point: LwPoint }) {
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
+              {p.custom ? (
+                <Button variant="dark" size="site-sm" onClick={() => setCustom(null)}>
+                  Înapoi la {point.ro}
+                </Button>
+              ) : null}
+              {p.ltser ? (
+                <Button asChild variant="dark" size="site-sm">
+                  <a href={LTSER_URL} target="_blank" rel="noreferrer">
+                    Date în LTSER Explorer <ArrowUpRight />
+                  </a>
+                </Button>
+              ) : null}
               {station ? (
                 <Button asChild variant="dark" size="site-sm">
-                  <Link to={`infrastructura/${station}`}>Pagina stațiunii</Link>
+                  <Link to={`statiuni/${station}`}>Pagina stațiunii</Link>
                 </Button>
               ) : null}
               {PLATFORM_OF[p.key] ? (
@@ -858,12 +995,12 @@ export function SiteSheetPage({ point: p }: { point: LwPoint }) {
           ))}
         </div>
         <section role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="px-5 pt-6 pb-14 sm:px-7">
-          {tab === "prezentare" ? <Overview p={p} /> : null}
-          {tab === "habitate" ? <Habitats p={p} eea={eea} setEea={setEea} eeaFail={eeaFail} /> : null}
-          {tab === "clima" ? <Climate p={p} /> : null}
-          {tab === "biodiversitate" ? <Biodiversity p={p} /> : null}
-          {tab === "retele" ? <Networks p={p} /> : null}
-          {tab === "date" ? <DataApi p={p} /> : null}
+          {tab === "prezentare" ? <Overview key={p.key} p={p} /> : null}
+          {tab === "habitate" ? <Habitats key={p.key} p={p} eea={eea} setEea={setEea} eeaFail={eeaFail} /> : null}
+          {tab === "clima" ? <Climate key={p.key} p={p} /> : null}
+          {tab === "biodiversitate" ? <Biodiversity key={p.key} p={p} /> : null}
+          {tab === "retele" ? <Networks key={p.key} p={p} /> : null}
+          {tab === "date" ? <DataApi key={p.key} p={p} /> : null}
         </section>
       </div>
     </div>

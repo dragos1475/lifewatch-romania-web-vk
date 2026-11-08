@@ -3,6 +3,7 @@
 // iNaturalist, GBIF, ICOS Carbon Portal and the EEA Natura 2000 service.
 // Refresh with: node scripts/import-lw-data.mjs <path to the static site>.
 import raw from "./lw-data.json";
+import { isEn, numberLocale } from "../i18n/core";
 
 export type Cat = "statiune" | "ltser" | "lter" | "icos" | "icos-cat" | "meteo";
 
@@ -15,6 +16,7 @@ export interface LwImage {
 export interface LwSpecies {
   name: string;
   common?: string | null;
+  common_en?: string | null;
   count: number;
   group?: string;
   taxon: number;
@@ -35,6 +37,16 @@ export interface LwN2k {
   name: string;
   type: "SCI" | "SPA" | string;
   ha: number;
+}
+/** Instrument networks of the LifeWatch field network, as listed in LTSER Explorer. */
+export type NetCode = "ws" | "ec" | "cu" | "ra" | "co" | "bu";
+export interface LwLtser {
+  code: string;
+  county?: string;
+  commune?: string;
+  place?: string;
+  nets: NetCode[];
+  url?: string;
 }
 export interface LwPoint {
   key: string;
@@ -88,9 +100,15 @@ export interface LwPoint {
   infraNotes?: string | null;
   infraItems?: string[];
   clim?: { t: number[]; p: number[]; period?: string } | null;
+  /** Code, place and instruments in the LifeWatch field network. */
+  ltser?: LwLtser;
+  /** Added from LTSER Explorer (not a DEIMS record). */
+  fromLtser?: boolean;
+  /** A place picked on the map, analysed with live data only. */
+  custom?: boolean;
 }
 
-const DATA = raw as unknown as { generated: string; points: LwPoint[] };
+const DATA = raw as unknown as { generated: string; points: LwPoint[]; ltserNets: Record<NetCode, { label: string; n: number }> };
 
 export const LW_GENERATED = DATA.generated;
 export const LW_POINTS: LwPoint[] = DATA.points;
@@ -98,10 +116,13 @@ export const lwByKey = (key: string) => LW_POINTS.find((p) => p.key === key) ?? 
 export const lwById = (id: string) => LW_POINTS.find((p) => p.id === id) ?? null;
 export const lwBySlug = (slug: string) => LW_POINTS.find((p) => p.slug === slug) ?? null;
 
-/** "2026-11-07" as "7 noiembrie 2026". */
+/** "2026-11-07" as "7 noiembrie 2026" (or "7 November 2026" on English pages). */
 export const formatDay = (iso: string) =>
-  new Date(`${iso}T12:00:00Z`).toLocaleDateString("ro-RO", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
-export const SNAPSHOT_LABEL = `Instantaneu din ${formatDay(LW_GENERATED)}`;
+  new Date(`${iso}T12:00:00Z`).toLocaleDateString(numberLocale(), { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+export const snapshotLabel = () => (isEn() ? `Snapshot of ${formatDay(LW_GENERATED)}` : `Instantaneu din ${formatDay(LW_GENERATED)}`);
+
+/** Common name of a species in the page language. */
+export const commonName = (t: LwSpecies) => (isEn() ? t.common_en || null : t.common || null);
 
 export interface CatMeta {
   label: string;
@@ -114,10 +135,51 @@ export const CAT: Record<Cat, CatMeta> = {
   statiune: { label: "Stațiuni de cercetare UB", one: "Stațiune de cercetare", color: "#0E2A3B", shape: "square" },
   ltser: { label: "Platforme LTSER", one: "Platformă LTSER", color: "#2F7D4F", shape: "circle" },
   lter: { label: "Situri LTER", one: "Sit LTER", color: "#C96F12", shape: "circle" },
-  icos: { label: "Stații de flux ICOS (RCSES)", one: "Stație de flux ecosistemic ICOS", color: "#1F6E8C", shape: "triangle" },
+  icos: { label: "Stații de flux (eddy covariance)", one: "Stație de flux ecosistemic", color: "#1F6E8C", shape: "triangle" },
   "icos-cat": { label: "Catalog ICOS Carbon Portal", one: "Stație din catalogul ICOS", color: "#5C9DB8", shape: "triangle" },
-  meteo: { label: "Stații meteo eLTER", one: "Stație meteo eLTER", color: "#7B4F96", shape: "diamond" },
+  meteo: { label: "Stații climatice LifeWatch", one: "Stație climatică LifeWatch", color: "#7B4F96", shape: "diamond" },
 };
+
+/** The LifeWatch field network, as LTSER Explorer lists it. */
+export const LTSER_URL = "http://193.226.53.30/ltser/";
+export const LTSER_NETS = DATA.ltserNets;
+export const NETS: Record<NetCode, { t: string; d: string }> = {
+  ws: { t: "Stație meteo", d: "temperatura și umiditatea aerului, vântul, presiunea, precipitațiile, radiația globală, temperatura și umiditatea solului" },
+  ec: { t: "Eddy covariance", d: "fluxurile de CO₂, căldură latentă și sensibilă, evapotranspirația și radiația netă, la jumătate de oră" },
+  cu: { t: "Radiometru UV CUV5", d: "radiația ultravioletă totală" },
+  ra: { t: "Radiometru solar RaZON+", d: "radiația solară directă și difuză" },
+  co: { t: "Sondă cu neutroni cosmici", d: "umiditatea solului pe o suprafață de câteva hectare" },
+  bu: { t: "Geamandură", d: "măsurători în apă, la Sfântu Gheorghe" },
+};
+/** "Mărașu, comuna Mărașu, județul Brăila", without the commune when it has the place's name. */
+export function placeText(p: LwPoint) {
+  const l = p.ltser;
+  if (!l?.place) return "";
+  const c = l.commune && l.commune !== l.place;
+  if (isEn()) return `${l.place}${c ? `, ${l.commune} commune` : ""}${l.county ? `, ${l.county} county` : ""}`;
+  return `${l.place}${c ? `, comuna ${l.commune}` : ""}${l.county ? `, județul ${l.county}` : ""}`;
+}
+/** A point picked on the map, with an analysis box of about 11 × 11 km. */
+export function customPoint(lat: number, lon: number): LwPoint {
+  const d = 0.05;
+  const r = (x: number) => +x.toFixed(4);
+  return {
+    key: `pt-${lat}-${lon}`,
+    id: "pt",
+    slug: "punct",
+    cat: "lter",
+    custom: true,
+    name: "Punct ales pe hartă",
+    ro: "Punct ales pe hartă",
+    lat,
+    lon,
+    ours: false,
+    aoi: [r(lat - d), r(lon - d * 1.4), r(lat + d), r(lon + d * 1.4)],
+  };
+}
+
+/** Points of the field network (they have an LTSER Explorer code). */
+export const NETWORK_POINTS = () => LW_POINTS.filter((p) => p.ltser);
 
 /** Public URL of a file in public/ (photos are stored as "img/deims/…"). */
 export const asset = (path: string) => (/^https?:/.test(path) ? path : `${import.meta.env.BASE_URL}${path.replace(/^\/+/, "")}`);
@@ -142,16 +204,19 @@ export const siteCode = (p: LwPoint) => p.networks?.find((n) => n.code)?.code ??
 export const relatedOf = (p: LwPoint) => (p.relatedIds ?? []).map(lwById).filter((x): x is LwPoint => Boolean(x));
 
 export const fmt = (n: number | null | undefined, digits = 0) =>
-  n == null || Number.isNaN(n) ? "–" : Number(n).toLocaleString("ro-RO", { maximumFractionDigits: digits });
+  n == null || Number.isNaN(n) ? "–" : Number(n).toLocaleString(numberLocale(), { maximumFractionDigits: digits });
 
 /** First photo of a point, or the photo of its most observed species. */
 export function photoOf(p: LwPoint): LwImage | null {
   if (p.images?.length) return p.images[0];
   const t = p.inat?.top.find((x) => x.img);
-  return t?.img ? { src: t.img, thumb: t.img, alt: t.common || t.name, credit: t.credit } : null;
+  return t?.img ? { src: t.img, thumb: t.img, alt: commonName(t) || t.name, credit: t.credit } : null;
 }
 
-const speciesImage = (t: LwSpecies): LwImage => ({ src: t.img!, thumb: t.img, alt: t.common ? `${t.common} (${t.name})` : t.name, credit: t.credit });
+const speciesImage = (t: LwSpecies): LwImage => {
+  const c = commonName(t);
+  return { src: t.img!, thumb: t.img, alt: c ? `${c} (${t.name})` : t.name, credit: t.credit };
+};
 
 /** Gallery of a station: its photos, those of related sites (up to 8), then six species photos. */
 export function stationGallery(p: LwPoint): LwImage[] {

@@ -1,0 +1,9 @@
+# Station pages moved from /infrastructura/<station>/ to /statiuni/<station>/ on 2026-11-08.
+/infrastructura/sinaia              /statiuni/sinaia/            301
+/infrastructura/sinaia/*            /statiuni/sinaia/            301
+/infrastructura/braila              /statiuni/braila/            301
+/infrastructura/braila/*            /statiuni/braila/            301
+/infrastructura/orsova              /statiuni/orsova/            301
+/infrastructura/orsova/*            /statiuni/orsova/            301
+/infrastructura/sfantu-gheorghe     /statiuni/sfantu-gheorghe/   301
+/infrastructura/sfantu-gheorghe/*   /statiuni/sfantu-gheorghe/   301

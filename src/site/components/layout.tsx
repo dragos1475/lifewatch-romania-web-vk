@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils";
 import { LogoMark } from "@/components/logo";
 import { Dialog, DialogTrigger, SheetContent } from "@/components/ui/dialog";
 import { Kbd } from "@/components/ui/misc";
-import { formatDay, LW_GENERATED } from "../content/lw";
+import { asset, formatDay, LW_GENERATED } from "../content/lw";
+import { LOGOS } from "../content/site-photos";
 import { activeMenu, MENUS, type MenuLink } from "../nav";
 import { explorerHref, Link, useRouter } from "../router";
 import { Container } from "./primitives";
@@ -14,6 +15,7 @@ import { SiteSearch } from "./site-search";
 import { ThemeButton, ThemeChoice } from "./theme-switch";
 import { useSearchShortcut, useShortcutLabel } from "./use-mod-key";
 import { HelpProvider, useHelp } from "./help-widget";
+import { LangPrompt, LangSwitch } from "./lang";
 
 function Brand({ inverse = false }: { inverse?: boolean }) {
   return (
@@ -63,6 +65,7 @@ function TopBar({ onSearch }: { onSearch: () => void }) {
           <button type="button" onClick={toggleHelp} className="hidden h-8 rounded-md border border-[#4E6B7C] px-3 text-white transition-colors hover:bg-navy-2 md:block">
             Ai nevoie de ajutor?
           </button>
+          <LangSwitch />
           <ThemeButton className="size-8 text-[#DCE7EB] hover:bg-navy-2 hover:text-white" />
         </div>
       </Container>
@@ -126,7 +129,7 @@ function MobileNav({ onNavigate, onSearch }: { onNavigate: () => void; onSearch:
           Deschide exploratorul
           <ArrowUpRight className="size-4" strokeWidth={1.75} />
         </a>
-        <Link to="infrastructura" hash="acces" onClick={onNavigate} className="flex h-11 items-center justify-center rounded-lg bg-[#2f7d4f] text-[15px] font-semibold text-white">
+        <Link to="acces" onClick={onNavigate} className="flex h-11 items-center justify-center rounded-lg bg-[#2f7d4f] text-[15px] font-semibold text-white">
           Acces la stațiuni
         </Link>
       </div>
@@ -181,7 +184,7 @@ function Header({ onSearch }: { onSearch: () => void }) {
           <a href={explorerHref()} className="inline-flex h-11 items-center rounded-md px-2.5 text-[15px] font-semibold text-navy transition-colors hover:bg-surface-2 hover:text-accent 2xl:px-3 dark:text-foreground">
             Explorator
           </a>
-          <Link to="infrastructura" hash="acces" className="ml-1.5 inline-flex h-11 items-center rounded-lg bg-[#2f7d4f] px-4 text-[14px] font-semibold text-white transition-colors hover:bg-[#1f5a37]">
+          <Link to="acces" className="ml-1.5 inline-flex h-11 items-center rounded-lg bg-[#2f7d4f] px-4 text-[14px] font-semibold text-white transition-colors hover:bg-[#1f5a37]">
             Acces la stațiuni
           </Link>
         </nav>
@@ -211,7 +214,9 @@ const FOOTER: { title: string; links: MenuLink[] }[] = [
   {
     title: "Infrastructură",
     links: [
-      { label: "Stațiunile de cercetare", note: "", to: "infrastructura" },
+      { label: "Proiectul și infrastructura", note: "", to: "infrastructura" },
+      { label: "Stațiunile de cercetare", note: "", to: "statiuni" },
+      { label: "Acces la infrastructură", note: "", to: "acces" },
       { label: "Siturile noastre", note: "", to: "situri", hash: "noastre" },
       { label: "Rețeaua LTER România", note: "", to: "situri", hash: "retea" },
       { label: "Stațiile ICOS", note: "", to: "situri", hash: "icos" },
@@ -222,6 +227,7 @@ const FOOTER: { title: string; links: MenuLink[] }[] = [
     title: "Date și instrumente",
     links: [
       { label: "Exploratorul LTSER", note: "", href: "explorer" },
+      { label: "Geoportalul LifeWatch", note: "", href: "https://map.lifewatch.ro/" },
       { label: "Catalog de date", note: "", to: "date" },
       { label: "API de acces", note: "", to: "date/api" },
       { label: "LTER România în DEIMS", note: "", href: "https://deims.org/networks/4260f964-0ac4-4406-8adc-5afc06e31779" },
@@ -232,6 +238,7 @@ const FOOTER: { title: string; links: MenuLink[] }[] = [
     title: "Despre",
     links: [
       { label: "Despre LifeWatch România", note: "", to: "despre" },
+      { label: "Proiecte", note: "", to: "proiecte" },
       { label: "LifeWatch, eLTER și ICOS", note: "", to: "", hash: "icos-elter" },
       { label: "Ce construim", note: "", to: "", hash: "idei" },
       { label: "Surse de date și licențe", note: "", to: "", hash: "surse" },
@@ -240,12 +247,34 @@ const FOOTER: { title: string; links: MenuLink[] }[] = [
   },
 ];
 
+/** The university and the research centre behind the infrastructure, above the footer of every page. */
+function Institutions() {
+  return (
+    <section aria-label="Instituții" className="border-t border-border bg-background">
+      <Container className="flex flex-wrap items-center justify-between gap-x-12 gap-y-5 py-7">
+        <p className="max-w-[560px] text-[15px] leading-[1.55]">LifeWatch România este infrastructura de cercetare colocată LifeWatch, eLTER, ICOS și MIRRI a Universității din București. Stațiunile de la Brăila și Sinaia sunt coordonate de Centrul de Cercetare în Ecologie Sistemică și Sustenabilitate (RCSES) de la Facultatea de Biologie.</p>
+        <div className="flex flex-wrap items-center gap-4 rounded-xl bg-white px-4 py-3">
+          <a href="https://unibuc.ro/" target="_blank" rel="noreferrer">
+            <img src={asset(LOGOS.ub.src)} alt={LOGOS.ub.alt} width={259} height={58} className="h-[52px] w-auto" />
+          </a>
+          <a href="https://rcses.unibuc.ro/" target="_blank" rel="noreferrer">
+            <img src={asset(LOGOS.rcses.src)} alt={LOGOS.rcses.alt} width={128} height={64} className="h-[58px] w-auto" />
+          </a>
+        </div>
+      </Container>
+    </section>
+  );
+}
+
 function Footer() {
   const { openHelp } = useHelp();
   return (
     <footer className="mt-auto bg-panel text-[#DCE7EB]">
       <Container className="flex flex-wrap gap-10 pt-14 pb-7">
         <div className="flex min-w-0 flex-[2_1_300px] flex-col gap-3">
+          <span className="w-fit rounded-[10px] bg-white px-3 py-2">
+            <img src={asset(LOGOS.lifewatch.src)} alt={LOGOS.lifewatch.alt} width={110} height={60} className="h-[60px] w-auto" />
+          </span>
           <b className="font-display text-[22px] font-extrabold text-white">LifeWatch România</b>
           <p className="max-w-[400px] text-[14px] leading-[1.6] text-[#CFDCE2]">Infrastructură de cercetare a Universității din București pentru biodiversitate, ecosisteme și sisteme socio-ecologice, conectată la LifeWatch ERIC, eLTER RI și ICOS.</p>
           <p className="max-w-[400px] text-[14px] leading-[1.6] text-[#CFDCE2]">Centrul de Cercetare în Ecologie Sistemică și Sustenabilitate (RCSES), Facultatea de Biologie, Universitatea din București · Splaiul Independenței 91–95, București</p>
@@ -295,8 +324,10 @@ export function SiteLayout({ children }: { children: ReactNode }) {
         <main id="continut" tabIndex={-1} className="relative flex-1 focus:outline-none">
           {children}
         </main>
+        <Institutions />
         <Footer />
         <SiteSearch open={search} onOpenChange={setSearch} />
+        <LangPrompt />
       </div>
     </HelpProvider>
   );

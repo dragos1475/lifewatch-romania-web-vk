@@ -7,12 +7,14 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = join(root, "dist");
 const ssrDir = join(root, "dist-ssr");
-const { render, routeKeys } = await import(pathToFileURL(join(ssrDir, "entry-server.js")).href);
+const { render, routeKeys, prepare, missingEnglish } = await import(pathToFileURL(join(ssrDir, "entry-server.js")).href);
+await prepare();
 
 const template = await readFile(join(dist, "index.html"), "utf8");
 // data-key tells the browser which page the markup belongs to, so it only hydrates matching markup.
-const fill = (key, { head, html }) =>
+const fill = (key, { head, html, lang }) =>
   template
+    .replace('<html lang="ro">', `<html lang="${lang}">`)
     .replace(/<title>[^<]*<\/title><!--ssr-head-->/, head)
     .replace('<div id="site"><!--ssr-html--></div>', `<div id="site" data-key="${key}">${html}</div>`);
 
@@ -32,4 +34,8 @@ if (origin) {
   await writeFile(join(dist, "sitemap.xml"), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`);
 }
 await rm(ssrDir, { recursive: true, force: true });
+// Untranslated Romanian text on English pages: listed with I18N_MISSING=<file>, counted otherwise.
+const missing = missingEnglish();
+if (process.env.I18N_MISSING) await writeFile(process.env.I18N_MISSING, JSON.stringify(missing, null, 1));
+if (missing.length) console.log(`${missing.length} Romanian strings have no English version yet`);
 console.log(`prerendered ${keys.length} pages${origin ? " and sitemap.xml" : ""}`);

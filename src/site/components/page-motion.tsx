@@ -1,6 +1,7 @@
 // One small animated scene per inner page: a landscape for every station and platform, a drawing of
 // the subject for the other pages. Scenes are pure SVG with CSS motion (see .scene-* in index.css),
 // so they render in the prerendered HTML, move before hydration and stop under reduced motion.
+import { baseKey } from "../i18n/core";
 import { createContext, useContext, useId, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { SceneDefs } from "./scenes/kit";
@@ -27,7 +28,9 @@ const platformHabitats: Record<string, Habitat> = {
 
 const routeScenes: Record<string, Topic> = {
   despre: "about",
-  infrastructura: "infrastructure",
+  statiuni: "infrastructure",
+  infrastructura: "services",
+  acces: "contact",
   platforme: "platforms",
   date: "data",
   "date/api": "api",
@@ -40,10 +43,11 @@ const routeScenes: Record<string, Topic> = {
 };
 
 /** Scene for a route key; `null` means the route does not exist. The home page has the tree instead. */
-export function sceneForRoute(routeKey: string | null): PageMotionScene | null {
-  if (routeKey === null) return { kind: "not-found" };
+export function sceneForRoute(key: string | null): PageMotionScene | null {
+  if (key === null) return { kind: "not-found" };
+  const routeKey = baseKey(key);
   if (!routeKey) return null;
-  const station = routeKey.match(/^infrastructura\/([^/]+)$/)?.[1];
+  const station = routeKey.match(/^statiuni\/([^/]+)$/)?.[1];
   if (station) return stationHabitats[station] ? { kind: "landscape", habitat: stationHabitats[station] } : null;
   const platform = routeKey.match(/^platforme\/([^/]+)$/)?.[1];
   if (platform) return platformHabitats[platform] ? { kind: "landscape", habitat: platformHabitats[platform] } : null;

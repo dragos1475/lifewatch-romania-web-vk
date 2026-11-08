@@ -15,11 +15,18 @@ Proiectul are două părți, construite cu același sistem de design:
 | --- | --- |
 | Acasă | `/` |
 | Despre (misiune, obiective, infrastructuri europene, istoric, credite foto) | `/despre/` |
-| Infrastructură și cele patru stații | `/infrastructura/`, `/infrastructura/{braila,sfantu-gheorghe,sinaia,orsova}/` |
+| Proiectul și infrastructura (11 laboratoare, rețeaua din teren, centrul de date, platforma, LTSER Explorer) | `/infrastructura/` |
+| Acces la infrastructură, cu formularul de cerere (Netlify Forms, `acces`) | `/acces/` |
+| Stațiunile de cercetare și cele patru stațiuni | `/statiuni/`, `/statiuni/{braila,sfantu-gheorghe,sinaia,orsova}/` |
+| Situri LTER și ICOS și cele 46 de fișe de date | `/situri/`, `/situri/<sit>/` |
 | Platforme LTER și LTSER și cele șase platforme | `/platforme/`, `/platforme/{delta-dunarii,insulele-brailei,neajlov,bucegi-piatra-craiului,rodna-calimani,retezat}/` |
 | Catalog de date, API, documentație | `/date/`, `/date/api/`, `/date/documentatie/` |
-| Servicii, rețea, proiecte | `/servicii/`, `/retea/`, `/proiecte/` |
+| Servicii, rețea, proiecte (13, cu stațiunile unde lucrează) | `/servicii/`, `/retea/`, `/proiecte/` |
 | Întrebări frecvente, contact | `/intrebari-frecvente/`, `/contact/` |
+
+Fiecare pagină există și în engleză, sub `/en/` (de exemplu `/en/statiuni/braila/`). Paginile
+stațiunilor erau până pe 8 noiembrie 2026 sub `/infrastructura/<stațiune>/`; `public/_redirects`
+le trimite pe Netlify la noile adrese.
 
 Fiecare stație, platformă și set de date are legături directe către ecranul potrivit din
 explorator (de exemplu `/explorator/#/retele/meteo?statie=MH-Ors`). Căutarea `⌘K` acoperă
@@ -94,16 +101,32 @@ iar exploratorul revine la hărțile Esri.
 ### Datele siturilor
 
 Hărțile, fișele de sit (`/situri/<sit>/`), stațiunile și cifrele de pe prima pagină folosesc un
-instantaneu din DEIMS-SDR, NASA POWER, iNaturalist, GBIF, ICOS Carbon Portal și EEA Natura 2000,
-preluat din site-ul static `lifewatch-romania-site/`. Pentru un instantaneu nou se reface acolo
-datele (`bash tools/refresh.sh`), apoi:
+instantaneu din DEIMS-SDR, NASA POWER, iNaturalist, GBIF, ICOS Carbon Portal, EEA Natura 2000 și
+LTSER Explorer (cele 20 de stații climatice și 5 stații de flux ale rețelei LifeWatch), preluat din
+site-ul static al colegilor. Acesta vine ca pagini HTML de sine stătătoare, cu datele și imaginile
+incluse. Pentru un instantaneu nou:
 
 ```
-node scripts/import-lw-data.mjs lifewatch-romania-site
+node scripts/import-lw-data.mjs "<folderul cu explorer.html, explorer-en.html, index.html, ...>"
 ```
 
-Scriptul scrie `src/site/content/lw-data.json`, `public/data/lw-boundaries.json`,
-`public/data/lw-basemap.json` și copiază fotografiile în `public/img/`.
+Scriptul scrie `src/site/content/lw-data.json`, `src/site/content/lw-photos.json`,
+`src/site/i18n/en-static.json` (dicționarul englez al colegilor), `public/data/lw-boundaries.json`,
+`public/data/lw-basemap.json`, `public/data/lw-legends.json` (legendele EUNIS și CORINE) și
+decodează imaginile în `public/img/`. Fotografiile și adresele fișelor deja existente rămân aceleași.
+Folderul primit nu se pune în git.
+
+### Limbi
+
+Site-ul este în română la `/` și în engleză la `/en/`. Textul englez vine din două dicționare indexate
+după textul românesc: `src/site/i18n/en-static.json` (de la colegi) și `src/site/i18n/en-site.json`
+(al nostru, are prioritate), fiecare cu reguli pentru textele compuse. Runtime-ul JSX din
+`src/site/i18n/` traduce textul și atributele `title`, `alt`, `aria-label` și `placeholder` la crearea
+elementelor, deci textul nou se scrie în română, ca până acum, și se adaugă traducerea în
+`en-site.json`. `I18N_MISSING=lipsa.json npm run build` listează textele românești rămase fără
+traducere pe paginile englezești. Comutatorul RO | EN din bara de sus reține alegerea, iar la prima
+vizită site-ul întreabă limba dacă browserul folosește altă limbă decât pagina. Exploratorul
+(`/explorator/`) are propriul comutator de limbă.
 
 ## Ce conține
 
@@ -155,10 +178,11 @@ index.html                  pagina site-ului (șablon pentru prerandare)
 explorator/index.html       pagina exploratorului
 scripts/prerender.mjs       scrie HTML static pentru fiecare pagină a site-ului
 scripts/make_basemap.py     generează contururile României și ale vecinilor pentru hărțile SVG
-scripts/import-lw-data.mjs  importă instantaneul siturilor (DEIMS, iNaturalist, NASA POWER) și fotografiile
+scripts/import-lw-data.mjs  importă instantaneul siturilor, fotografiile și dicționarul englez din paginile colegilor
 public/                     runtime-config.js, favicon, geometrii LTSER și UAT, stațiile rețelelor
 src/
   site/                     site-ul public: router pe căi, pagini, conținut, componente, intrări client și SSR
+  site/i18n/                limba paginii, dicționarele engleze și runtime-ul JSX care traduce textul
   api/                      clienți tipizați (lifewatch.ts, ltser.ts), stare servicii, date demonstrative (mock/)
   components/ui/            primitive: button, card, select, segmented, dialog, popover, tooltip, photo
   components/map/           Leaflet în React: straturi, legendă, raster reproiectat

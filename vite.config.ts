@@ -41,7 +41,8 @@ export default defineConfig(({ mode, isSsrBuild }) => {
     // Absolute base: the public site has nested paths (/infrastructura/braila/) and the explorer
     // lives at /explorator/. Set BASE_PATH (e.g. "/lifewatch/") to serve everything from a sub-path.
     base: env.BASE_PATH || "/",
-    plugins: [react(), tailwindcss()],
+    // The JSX runtime in src/site/i18n wraps React's and translates text on English pages.
+    plugins: [react({ jsxImportSource: "@/site/i18n" }), tailwindcss()],
     resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
     server: { host, port: Number(env.PORT) || 5173, allowedHosts, proxy },
     preview: { host, port: Number(env.PORT) || 4173, allowedHosts, proxy },

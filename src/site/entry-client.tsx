@@ -4,11 +4,15 @@ import "@/index.css";
 import { SiteApp } from "./app";
 import { toKey } from "./router";
 import { findSiteRoute } from "./routes";
+import { langOfKey, loadEn, setLang } from "./i18n/core";
 
 const container = document.getElementById("site")!;
 const path = toKey(window.location.pathname);
 // Unknown paths use the key of the prerendered 404.html.
 const key = findSiteRoute(path) ? path : "__404__";
+// English pages need their dictionaries before the first render, so it matches the prerendered HTML.
+setLang(langOfKey(key));
+if (langOfKey(key) === "en") await loadEn();
 const app = (
   <StrictMode>
     <SiteApp initialKey={key} />
