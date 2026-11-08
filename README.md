@@ -13,7 +13,8 @@ Proiectul are două părți, construite cu același sistem de design:
 
 | Pagină | Adresă |
 | --- | --- |
-| Acasă | `/` |
+| Pagina de bun venit (intro animat, fără antet și subsol; făcută în Lovable, repo `project-revival`) | `/` |
+| Acasă: harta zonelor de cercetare și secțiunile principale | `/acasa/` |
 | Despre (misiune, obiective, infrastructuri europene, istoric, credite foto) | `/despre/` |
 | Proiectul și infrastructura (11 laboratoare, rețeaua din teren, centrul de date, platforma, LTSER Explorer) | `/infrastructura/` |
 | Acces la infrastructură, cu formularul de cerere (Netlify Forms, `acces`) | `/acces/` |

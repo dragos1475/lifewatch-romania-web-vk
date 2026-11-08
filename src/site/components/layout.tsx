@@ -19,7 +19,7 @@ import { LangPrompt, LangSwitch } from "./lang";
 
 function Brand({ inverse = false }: { inverse?: boolean }) {
   return (
-    <Link to="" className={cn("flex min-w-0 shrink-0 items-center gap-3 rounded-lg", inverse ? "text-white" : "text-navy dark:text-foreground")} aria-label="LifeWatch România, pagina principală">
+    <Link to="acasa" className={cn("flex min-w-0 shrink-0 items-center gap-3 rounded-lg", inverse ? "text-white" : "text-navy dark:text-foreground")} aria-label="LifeWatch România, pagina principală">
       <LogoMark className="size-11 shrink-0" />
       <span className="grid min-w-0 leading-tight">
         <span className="font-display text-[21px] leading-[1.1] font-extrabold">LifeWatch România</span>
@@ -54,7 +54,7 @@ function TopBar({ onSearch }: { onSearch: () => void }) {
       <Container className="flex items-center justify-end gap-x-6 gap-y-2 py-[7px] md:justify-between">
         <span className="hidden truncate md:block">Universitatea din București · Centrul de Cercetare în Ecologie Sistemică și Sustenabilitate (RCSES)</span>
         <div className="flex shrink-0 items-center gap-2.5 sm:gap-3.5">
-          <Link to="" className="hidden text-[#DCE7EB] hover:text-white hover:underline sm:inline">
+          <Link to="acasa" className="hidden text-[#DCE7EB] hover:text-white hover:underline sm:inline">
             Acasă
           </Link>
           <button type="button" onClick={onSearch} className="flex h-8 w-[170px] items-center gap-2 rounded-md bg-navy-2 px-2.5 text-left text-[#A9BCC5] transition-colors hover:text-white sm:w-[230px]">
@@ -239,9 +239,9 @@ const FOOTER: { title: string; links: MenuLink[] }[] = [
     links: [
       { label: "Despre LifeWatch România", note: "", to: "despre" },
       { label: "Proiecte", note: "", to: "proiecte" },
-      { label: "LifeWatch, eLTER și ICOS", note: "", to: "", hash: "icos-elter" },
-      { label: "Ce construim", note: "", to: "", hash: "idei" },
-      { label: "Surse de date și licențe", note: "", to: "", hash: "surse" },
+      { label: "LifeWatch, eLTER și ICOS", note: "", to: "acasa", hash: "icos-elter" },
+      { label: "Ce construim", note: "", to: "acasa", hash: "idei" },
+      { label: "Surse de date și licențe", note: "", to: "acasa", hash: "surse" },
       { label: "Contact", note: "", to: "contact" },
     ],
   },

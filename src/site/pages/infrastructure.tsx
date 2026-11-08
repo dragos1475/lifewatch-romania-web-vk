@@ -169,7 +169,7 @@ function FieldNetwork({ open }: { open: (i: number) => void }) {
       </div>
       <div className="mt-5 flex flex-wrap gap-2.5">
         <Button asChild variant="outline" size="site-sm">
-          <Link to="" hash="harta">Harta zonelor</Link>
+          <Link to="acasa" hash="harta">Harta zonelor</Link>
         </Button>
         <Button asChild variant="outline" size="site-sm">
           <Link to="situri" hash="icos">Stațiile de flux</Link>

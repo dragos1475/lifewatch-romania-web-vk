@@ -178,7 +178,7 @@ const TOOLS: { icon: LucideIcon; title: string; body: string; status: Status; to
   { icon: Thermometer, title: "Climate Dashboard ANM", body: "Date observaționale și scenarii climatice pe grila bazinului Dunării, dezvoltate cu Administrația Națională de Meteorologie.", status: "hub", href: "https://carmine.geo.meteoromania.ro/restore4life-dss/", cta: "Deschide pe Hub" },
   { icon: Database, title: "Catalogul de date Restore4Life", body: "Catalog GeoNetwork și servicii WMS pentru siturile pilot din bazinul Dunării.", status: "hub", href: "https://r4l-data.unibuc.ro/catalog/srv/dut/catalog.search", cta: "Deschide catalogul" },
   { icon: Leaf, title: "eBird, MINKA și CrowdWater", body: "Știință cetățenească pentru păsări, biodiversitate și hidrologie, integrate în tablourile de sit ale Hub-ului.", status: "hub", href: "https://wetlandrestorationhub.eu/", cta: "Deschide Hub-ul" },
-  { icon: ClipboardList, title: "Raportare pentru Planul Național de Restaurare", body: "Fișe automate pe sit, cu corespondențe EUNIS și Anexa I spre grupurile de habitate din Regulamentul de restaurare a naturii.", status: "plan", to: "", hash: "idei", cta: "Vezi ideea" },
+  { icon: ClipboardList, title: "Raportare pentru Planul Național de Restaurare", body: "Fișe automate pe sit, cu corespondențe EUNIS și Anexa I spre grupurile de habitate din Regulamentul de restaurare a naturii.", status: "plan", to: "acasa", hash: "idei", cta: "Vezi ideea" },
 ];
 
 function ToolCard({ t }: { t: (typeof TOOLS)[number] }) {

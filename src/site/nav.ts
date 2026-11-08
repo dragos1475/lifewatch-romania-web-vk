@@ -32,7 +32,7 @@ export const MENUS: Menu[] = [
       { label: "Acces la infrastructură", note: "Cine răspunde, cum se face cererea", to: "acces" },
       { label: "Proiecte susținute", note: "Unde lucrează fiecare proiect", to: "proiecte" },
       { label: "Platforma web", note: "Arhitectură, servicii OGC și STAC", to: "infrastructura", hash: "platforma" },
-      { label: "LifeWatch, eLTER și ICOS", note: "Cum se leagă infrastructurile", to: "", hash: "icos-elter" },
+      { label: "LifeWatch, eLTER și ICOS", note: "Cum se leagă infrastructurile", to: "acasa", hash: "icos-elter" },
       { label: "Întrebări frecvente", note: "Infrastructură, date, explorator", to: "intrebari-frecvente" },
       { label: "Contact", note: "Adresele și telefoanele stațiunilor", to: "contact" },
     ],
@@ -62,7 +62,7 @@ export const MENUS: Menu[] = [
       { label: "Rețeaua LTER România", note: "Toate siturile din DEIMS", to: "situri", hash: "retea" },
       { label: "Stațiile de flux", note: "Fluxuri de carbon, apă și energie", to: "situri", hash: "icos" },
       { label: "Platformele LTSER", note: "Șase platforme socio-ecologice", to: "platforme" },
-      { label: "Harta zonelor", note: "Toate punctele pe o hartă", to: "", hash: "harta" },
+      { label: "Harta zonelor", note: "Toate punctele pe o hartă", to: "acasa", hash: "harta" },
     ],
   },
   {

@@ -13,7 +13,7 @@ export default function NotFoundPage() {
         <h1 className="text-[34px] leading-tight font-semibold tracking-tight">Pagina nu există</h1>
         <p className="max-w-[44ch] text-[15px] text-muted">Adresa poate fi greșită sau pagina a fost mutată. Folosiți căutarea din antet sau porniți de la pagina principală.</p>
         <Button asChild variant="primary" size="lg" className="mt-2">
-          <Link to="">
+          <Link to="acasa">
             Pagina principală
             <ArrowRight strokeWidth={1.75} />
           </Link>
